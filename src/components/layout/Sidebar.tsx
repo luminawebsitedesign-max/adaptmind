@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -9,10 +10,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Settings,
+  LogOut,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ViewType } from "@/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems: { id: ViewType; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -24,6 +33,7 @@ const navItems: { id: ViewType; label: string; icon: React.ReactNode }[] = [
 
 export function Sidebar() {
   const { currentView, setCurrentView, sidebarCollapsed, toggleSidebar, todoLists, goals, habits, chatMessages } = useAppStore();
+  const { user, profile, signOut } = useAuth();
 
   const exportData = () => {
     const data = {
@@ -41,6 +51,8 @@ export function Sidebar() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
 
   return (
     <aside
@@ -97,6 +109,35 @@ export function Sidebar() {
           <Download className="w-5 h-5" />
           {!sidebarCollapsed && <span className="font-medium">Export Data</span>}
         </button>
+
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
+                "text-muted-foreground hover:text-foreground hover:bg-muted/20"
+              )}
+            >
+              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="w-3 h-3 text-primary" />
+              </div>
+              {!sidebarCollapsed && (
+                <span className="font-medium truncate">{displayName}</span>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem className="text-muted-foreground text-sm">
+              {user?.email}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOut} className="text-destructive">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Button
           variant="ghost"
