@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
+import { useAuth } from "@/contexts/AuthContext";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DashboardView } from "@/components/views/DashboardView";
 import { TodosView } from "@/components/views/TodosView";
@@ -9,6 +12,10 @@ import { AssistantView } from "@/components/views/AssistantView";
 
 const Index = () => {
   const { currentView, sidebarCollapsed } = useAppStore();
+  const { profile } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => profile?.onboarding_completed === false
+  );
 
   const renderView = () => {
     switch (currentView) {
@@ -41,6 +48,10 @@ const Index = () => {
           {renderView()}
         </div>
       </main>
+
+      {showOnboarding && (
+        <OnboardingTour onComplete={() => setShowOnboarding(false)} />
+      )}
     </div>
   );
 };
