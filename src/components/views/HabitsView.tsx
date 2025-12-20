@@ -3,13 +3,15 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Flame, TrendingUp, Check, X } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Plus, Trash2, Flame, TrendingUp, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -18,7 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Habit } from "@/types";
+import { toast } from "sonner";
 
 export function HabitsView() {
   const { habits, addHabit, deleteHabit, toggleHabitCompletion } = useAppStore();
@@ -27,6 +36,11 @@ export function HabitsView() {
     name: "",
     icon: "✨",
     frequency: "daily" as Habit["frequency"],
+  });
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; habitId: string; habitName: string }>({
+    open: false,
+    habitId: "",
+    habitName: "",
   });
 
   const handleAddHabit = () => {
@@ -38,6 +52,22 @@ export function HabitsView() {
       });
       setNewHabit({ name: "", icon: "✨", frequency: "daily" });
       setIsAddingHabit(false);
+      toast.success("Habit created successfully");
+    }
+  };
+
+  const handleDeleteHabit = () => {
+    deleteHabit(deleteConfirm.habitId);
+    setDeleteConfirm({ open: false, habitId: "", habitName: "" });
+    toast.success("Habit deleted");
+  };
+
+  const handleToggleCompletion = (habitId: string, date: string, habitName: string) => {
+    const habit = habits.find(h => h.id === habitId);
+    const isCompleting = !habit?.completedDates.includes(date);
+    toggleHabitCompletion(habitId, date);
+    if (isCompleting) {
+      toast.success(`${habitName} completed for today!`);
     }
   };
 
@@ -88,45 +118,57 @@ export function HabitsView() {
           <DialogContent className="glass-strong">
             <DialogHeader>
               <DialogTitle>Create New Habit</DialogTitle>
+              <DialogDescription>
+                Start building a new habit. Pick an emoji and set how often you want to do it.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div className="flex gap-2">
-                <Input
-                  placeholder="Icon"
-                  value={newHabit.icon}
-                  onChange={(e) =>
-                    setNewHabit((prev) => ({ ...prev, icon: e.target.value }))
-                  }
-                  className="w-20 text-center text-xl"
-                />
-                <Input
-                  placeholder="Habit name"
-                  value={newHabit.name}
-                  onChange={(e) =>
-                    setNewHabit((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  className="flex-1"
-                />
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Icon</label>
+                  <Input
+                    placeholder="✨"
+                    value={newHabit.icon}
+                    onChange={(e) =>
+                      setNewHabit((prev) => ({ ...prev, icon: e.target.value }))
+                    }
+                    className="w-16 text-center text-xl"
+                    maxLength={2}
+                  />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs text-muted-foreground">Habit Name *</label>
+                  <Input
+                    placeholder="e.g., Morning exercise, Read 30 minutes"
+                    value={newHabit.name}
+                    onChange={(e) =>
+                      setNewHabit((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
-              <Select
-                value={newHabit.frequency}
-                onValueChange={(v) =>
-                  setNewHabit((prev) => ({
-                    ...prev,
-                    frequency: v as Habit["frequency"],
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleAddHabit} className="w-full">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Frequency</label>
+                <Select
+                  value={newHabit.frequency}
+                  onValueChange={(v) =>
+                    setNewHabit((prev) => ({
+                      ...prev,
+                      frequency: v as Habit["frequency"],
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleAddHabit} className="w-full" disabled={!newHabit.name.trim()}>
                 Create Habit
               </Button>
             </div>
@@ -219,13 +261,14 @@ export function HabitsView() {
                     )}
                   >
                     <button
-                      onClick={() => toggleHabitCompletion(habit.id, day.date)}
+                      onClick={() => handleToggleCompletion(habit.id, day.date, habit.name)}
                       className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
                         isCompleted
                           ? "bg-primary text-primary-foreground glow-cyan"
                           : "bg-muted/20 hover:bg-muted/40"
                       )}
+                      aria-label={`Mark ${habit.name} as ${isCompleted ? "incomplete" : "complete"} for ${day.dayName}`}
                     >
                       {isCompleted ? (
                         <Check className="w-4 h-4" />
@@ -238,39 +281,60 @@ export function HabitsView() {
               })}
             </div>
 
-            <div className="w-24 p-4 text-center border-l border-border/30">
-              <div className="flex items-center justify-center gap-1">
-                <Flame
-                  className={cn(
-                    "w-4 h-4",
-                    habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"
-                  )}
-                />
-                <span className="font-display font-bold">{habit.streak}</span>
-              </div>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-24 p-4 text-center border-l border-border/30 cursor-help">
+                    <div className="flex items-center justify-center gap-1">
+                      <Flame
+                        className={cn(
+                          "w-4 h-4",
+                          habit.streak > 0 ? "text-orange-500" : "text-muted-foreground"
+                        )}
+                      />
+                      <span className="font-display font-bold">{habit.streak}</span>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Current streak: {habit.streak} days | Best: {habit.bestStreak} days
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             <div className="w-16 p-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => deleteHabit(habit.id)}
-                className="text-destructive hover:text-destructive h-8 w-8"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteConfirm({ open: true, habitId: habit.id, habitName: habit.name })}
+                      className="text-destructive hover:text-destructive h-8 w-8"
+                      aria-label="Delete habit"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete habit</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         ))}
 
         {habits.length === 0 && (
           <div className="p-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-8 h-8 text-accent" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">No habits yet</h3>
             <p className="text-muted-foreground mb-4">
-              No habits yet. Start building your routine!
+              Start building your daily routine
             </p>
-            <Button onClick={() => setIsAddingHabit(true)} className="gap-2">
+            <Button onClick={() => setIsAddingHabit(true)} className="gap-2 glow-purple bg-accent hover:bg-accent/90">
               <Plus className="w-4 h-4" />
-              Add Habit
+              Add Your First Habit
             </Button>
           </div>
         )}
@@ -284,9 +348,7 @@ export function HabitsView() {
             {habits.slice(0, 3).map((habit) => {
               const successRate =
                 habit.completedDates.length > 0
-                  ? Math.round(
-                      (habit.completedDates.length / 30) * 100
-                    )
+                  ? Math.min(100, Math.round((habit.completedDates.length / 30) * 100))
                   : 0;
               return (
                 <div key={habit.id} className="p-4 rounded-xl bg-muted/10">
@@ -316,6 +378,16 @@ export function HabitsView() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm((prev) => ({ ...prev, open }))}
+        title="Delete Habit?"
+        description={`Are you sure you want to delete "${deleteConfirm.habitName}"? Your streak and history will be lost. This action cannot be undone.`}
+        confirmLabel="Delete Habit"
+        onConfirm={handleDeleteHabit}
+      />
     </div>
   );
 }
