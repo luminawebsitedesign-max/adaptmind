@@ -6,13 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Plus, Trash2, Target, Calendar, Check, ChevronDown } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Plus, Trash2, Target, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -21,10 +23,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Goal } from "@/types";
+import { toast } from "sonner";
 
 export function GoalsView() {
-  const { goals, addGoal, updateGoal, deleteGoal, toggleMilestone } = useAppStore();
+  const { goals, addGoal, deleteGoal, toggleMilestone } = useAppStore();
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: "",
@@ -33,6 +42,11 @@ export function GoalsView() {
     milestones: [""],
   });
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; goalId: string; goalTitle: string }>({
+    open: false,
+    goalId: "",
+    goalTitle: "",
+  });
 
   const handleAddGoal = () => {
     if (newGoal.title.trim()) {
@@ -56,7 +70,14 @@ export function GoalsView() {
         milestones: [""],
       });
       setIsAddingGoal(false);
+      toast.success("Goal created successfully");
     }
+  };
+
+  const handleDeleteGoal = () => {
+    deleteGoal(deleteConfirm.goalId);
+    setDeleteConfirm({ open: false, goalId: "", goalTitle: "" });
+    toast.success("Goal deleted");
   };
 
   const addMilestoneField = () => {
@@ -71,18 +92,6 @@ export function GoalsView() {
       ...prev,
       milestones: prev.milestones.map((m, i) => (i === index ? value : m)),
     }));
-  };
-
-  const categoryLabels = {
-    short: "This Week",
-    medium: "This Month",
-    custom: "Custom",
-  };
-
-  const categoryColors = {
-    short: "cyan" as const,
-    medium: "magenta" as const,
-    custom: "purple" as const,
   };
 
   const shortTermGoals = goals.filter((g) => g.category === "short");
@@ -112,43 +121,58 @@ export function GoalsView() {
           <DialogContent className="glass-strong max-w-lg">
             <DialogHeader>
               <DialogTitle>Create New Goal</DialogTitle>
+              <DialogDescription>
+                Define your goal and break it down into milestones for better tracking.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              <Input
-                placeholder="Goal title"
-                value={newGoal.title}
-                onChange={(e) =>
-                  setNewGoal((prev) => ({ ...prev, title: e.target.value }))
-                }
-              />
-              <Textarea
-                placeholder="Description (optional)"
-                value={newGoal.description}
-                onChange={(e) =>
-                  setNewGoal((prev) => ({ ...prev, description: e.target.value }))
-                }
-              />
-              <Select
-                value={newGoal.category}
-                onValueChange={(v) =>
-                  setNewGoal((prev) => ({
-                    ...prev,
-                    category: v as Goal["category"],
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="short">Short-Term (This Week)</SelectItem>
-                  <SelectItem value="medium">Medium-Term (This Month)</SelectItem>
-                  <SelectItem value="custom">Custom Length</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Goal Title *</label>
+                <Input
+                  placeholder="e.g., Learn a new programming language"
+                  value={newGoal.title}
+                  onChange={(e) =>
+                    setNewGoal((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Description (optional)</label>
+                <Textarea
+                  placeholder="Add more context about your goal..."
+                  value={newGoal.description}
+                  onChange={(e) =>
+                    setNewGoal((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Timeframe</label>
+                <Select
+                  value={newGoal.category}
+                  onValueChange={(v) =>
+                    setNewGoal((prev) => ({
+                      ...prev,
+                      category: v as Goal["category"],
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="short">Short-Term (This Week)</SelectItem>
+                    <SelectItem value="medium">Medium-Term (This Month)</SelectItem>
+                    <SelectItem value="custom">Custom Length</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Milestones</label>
+                <label className="text-xs text-muted-foreground">
+                  Milestones (optional) - Break your goal into smaller steps
+                </label>
                 {newGoal.milestones.map((milestone, i) => (
                   <Input
                     key={i}
@@ -168,7 +192,7 @@ export function GoalsView() {
                 </Button>
               </div>
 
-              <Button onClick={handleAddGoal} className="w-full">
+              <Button onClick={handleAddGoal} className="w-full" disabled={!newGoal.title.trim()}>
                 Create Goal
               </Button>
             </div>
@@ -187,7 +211,7 @@ export function GoalsView() {
           expandedGoal={expandedGoal}
           setExpandedGoal={setExpandedGoal}
           toggleMilestone={toggleMilestone}
-          deleteGoal={deleteGoal}
+          onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
         />
 
         {/* Medium Term */}
@@ -199,7 +223,7 @@ export function GoalsView() {
           expandedGoal={expandedGoal}
           setExpandedGoal={setExpandedGoal}
           toggleMilestone={toggleMilestone}
-          deleteGoal={deleteGoal}
+          onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
         />
 
         {/* Custom */}
@@ -211,22 +235,35 @@ export function GoalsView() {
           expandedGoal={expandedGoal}
           setExpandedGoal={setExpandedGoal}
           toggleMilestone={toggleMilestone}
-          deleteGoal={deleteGoal}
+          onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
         />
       </div>
 
       {goals.length === 0 && (
         <div className="glass rounded-2xl p-12 text-center">
-          <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-4">
+            <Target className="w-8 h-8 text-secondary" />
+          </div>
+          <h3 className="font-semibold text-lg mb-2">No goals yet</h3>
           <p className="text-muted-foreground mb-4">
-            No goals yet. Set your first goal to get started!
+            Set your first goal to start tracking your progress
           </p>
-          <Button onClick={() => setIsAddingGoal(true)} className="gap-2">
+          <Button onClick={() => setIsAddingGoal(true)} className="gap-2 glow-magenta bg-secondary hover:bg-secondary/90">
             <Plus className="w-4 h-4" />
-            Create Goal
+            Create Your First Goal
           </Button>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm((prev) => ({ ...prev, open }))}
+        title="Delete Goal?"
+        description={`Are you sure you want to delete "${deleteConfirm.goalTitle}"? All milestones will be lost. This action cannot be undone.`}
+        confirmLabel="Delete Goal"
+        onConfirm={handleDeleteGoal}
+      />
     </div>
   );
 }
@@ -239,7 +276,7 @@ function GoalSection({
   expandedGoal,
   setExpandedGoal,
   toggleMilestone,
-  deleteGoal,
+  onDeleteGoal,
 }: {
   title: string;
   subtitle: string;
@@ -248,15 +285,9 @@ function GoalSection({
   expandedGoal: string | null;
   setExpandedGoal: (id: string | null) => void;
   toggleMilestone: (goalId: string, milestoneId: string) => void;
-  deleteGoal: (id: string) => void;
+  onDeleteGoal: (id: string, title: string) => void;
 }) {
   if (goals.length === 0) return null;
-
-  const glowClass = {
-    cyan: "glow-cyan",
-    magenta: "glow-magenta",
-    purple: "glow-purple",
-  };
 
   return (
     <div className="space-y-4">
@@ -266,91 +297,121 @@ function GoalSection({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {goals.map((goal) => (
-          <div
-            key={goal.id}
-            className={cn(
-              "glass rounded-2xl p-5 transition-all duration-300 hover-glow",
-              expandedGoal === goal.id && "ring-1 ring-primary/30"
-            )}
-          >
-            <div className="flex items-start gap-4">
-              <ProgressRing
-                progress={goal.progress}
-                size={80}
-                strokeWidth={6}
-                color={color}
-              />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-lg">{goal.title}</h3>
-                    {goal.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {goal.description}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteGoal(goal.id)}
-                    className="text-destructive hover:text-destructive h-8 w-8"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Milestones Toggle */}
-                <button
-                  onClick={() =>
-                    setExpandedGoal(expandedGoal === goal.id ? null : goal.id)
-                  }
-                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mt-3"
-                >
-                  <ChevronDown
-                    className={cn(
-                      "w-4 h-4 transition-transform",
-                      expandedGoal === goal.id && "rotate-180"
-                    )}
-                  />
-                  {goal.milestones.filter((m) => m.completed).length}/
-                  {goal.milestones.length} milestones
-                </button>
-
-                {/* Milestones */}
-                {expandedGoal === goal.id && (
-                  <div className="mt-3 space-y-2 animate-fade-in">
-                    {goal.milestones.map((milestone) => (
-                      <div
-                        key={milestone.id}
-                        className="flex items-center gap-2"
-                      >
-                        <Checkbox
-                          checked={milestone.completed}
-                          onCheckedChange={() =>
-                            toggleMilestone(goal.id, milestone.id)
-                          }
-                          className="data-[state=checked]:bg-primary"
+        {goals.map((goal) => {
+          const completedMilestones = goal.milestones.filter((m) => m.completed).length;
+          const totalMilestones = goal.milestones.length;
+          
+          return (
+            <div
+              key={goal.id}
+              className={cn(
+                "glass rounded-2xl p-5 transition-all duration-300 hover-glow",
+                expandedGoal === goal.id && "ring-1 ring-primary/30"
+              )}
+            >
+              <div className="flex items-start gap-4">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help">
+                        <ProgressRing
+                          progress={goal.progress}
+                          size={80}
+                          strokeWidth={6}
+                          color={color}
                         />
-                        <span
-                          className={cn(
-                            "text-sm",
-                            milestone.completed &&
-                              "line-through text-muted-foreground"
-                          )}
-                        >
-                          {milestone.title}
-                        </span>
                       </div>
-                    ))}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {totalMilestones > 0 
+                        ? `${completedMilestones} of ${totalMilestones} milestones completed = ${goal.progress}%`
+                        : `${goal.progress}% complete`
+                      }
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg">{goal.title}</h3>
+                      {goal.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {goal.description}
+                        </p>
+                      )}
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onDeleteGoal(goal.id, goal.title)}
+                            className="text-destructive hover:text-destructive h-8 w-8"
+                            aria-label="Delete goal"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete goal</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
-                )}
+
+                  {/* Milestones Toggle */}
+                  {goal.milestones.length > 0 && (
+                    <>
+                      <button
+                        onClick={() =>
+                          setExpandedGoal(expandedGoal === goal.id ? null : goal.id)
+                        }
+                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mt-3 transition-colors"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "w-4 h-4 transition-transform duration-200",
+                            expandedGoal === goal.id && "rotate-180"
+                          )}
+                        />
+                        {completedMilestones}/{totalMilestones} milestones
+                      </button>
+
+                      {/* Milestones */}
+                      {expandedGoal === goal.id && (
+                        <div className="mt-3 space-y-2 animate-fade-in">
+                          {goal.milestones.map((milestone) => (
+                            <div
+                              key={milestone.id}
+                              className="flex items-center gap-2"
+                            >
+                              <Checkbox
+                                checked={milestone.completed}
+                                onCheckedChange={() =>
+                                  toggleMilestone(goal.id, milestone.id)
+                                }
+                                className="data-[state=checked]:bg-primary"
+                              />
+                              <span
+                                className={cn(
+                                  "text-sm transition-all",
+                                  milestone.completed &&
+                                    "line-through text-muted-foreground"
+                                )}
+                              >
+                                {milestone.title}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
