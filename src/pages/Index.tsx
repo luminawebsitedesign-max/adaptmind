@@ -10,8 +10,9 @@ import { TodosView } from "@/components/views/TodosView";
 import { GoalsView } from "@/components/views/GoalsView";
 import { HabitsView } from "@/components/views/HabitsView";
 import { AssistantView } from "@/components/views/AssistantView";
+import { CalendarView } from "@/components/views/CalendarView";
+import { ProfileView } from "@/components/views/ProfileView";
 import { ExportDataView } from "@/components/views/ExportDataView";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const { currentView, sidebarCollapsed } = useAppStore();
@@ -32,6 +33,10 @@ const Index = () => {
         return <HabitsView />;
       case "assistant":
         return <AssistantView />;
+      case "calendar":
+        return <CalendarView />;
+      case "profile":
+        return <ProfileView />;
       case "settings":
         return <ExportDataView />;
       default:
@@ -40,12 +45,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className="min-h-screen flex flex-col">
       <Sidebar />
       
       <main
         className={cn(
-          "transition-all duration-200 p-6 lg:p-8",
+          "flex-1 transition-all duration-200 p-6 lg:p-8 pb-16",
           sidebarCollapsed ? "ml-16" : "ml-64"
         )}
       >

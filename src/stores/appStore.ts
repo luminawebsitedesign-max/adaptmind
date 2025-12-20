@@ -14,6 +14,7 @@ interface AppState {
   updateTodoItem: (listId: string, itemId: string, updates: Partial<TodoItem>) => void;
   deleteTodoItem: (listId: string, itemId: string) => void;
   reorderTodoItems: (listId: string, items: TodoItem[]) => void;
+  moveTodoItem: (itemId: string, fromListId: string, toListId: string) => void;
   
   // Goals
   goals: Goal[];
@@ -25,6 +26,7 @@ interface AppState {
   // Habits
   habits: Habit[];
   addHabit: (habit: Omit<Habit, 'id' | 'streak' | 'bestStreak' | 'completedDates' | 'createdAt'>) => void;
+  updateHabit: (id: string, updates: Partial<Habit>) => void;
   deleteHabit: (id: string) => void;
   toggleHabitCompletion: (id: string, date: string) => void;
   
@@ -113,6 +115,24 @@ export const useAppStore = create<AppState>()(
           list.id === listId ? { ...list, items } : list
         )
       })),
+
+      moveTodoItem: (itemId, fromListId, toListId) => set((state) => {
+        const fromList = state.todoLists.find(l => l.id === fromListId);
+        const item = fromList?.items.find(i => i.id === itemId);
+        if (!item) return state;
+        
+        return {
+          todoLists: state.todoLists.map(list => {
+            if (list.id === fromListId) {
+              return { ...list, items: list.items.filter(i => i.id !== itemId) };
+            }
+            if (list.id === toListId) {
+              return { ...list, items: [...list.items, { ...item, listId: toListId }] };
+            }
+            return list;
+          })
+        };
+      }),
       
       // Goals
       goals: [
@@ -202,6 +222,10 @@ export const useAppStore = create<AppState>()(
       
       addHabit: (habit) => set((state) => ({
         habits: [...state.habits, { ...habit, id: generateId(), streak: 0, bestStreak: 0, completedDates: [], createdAt: new Date() }]
+      })),
+
+      updateHabit: (id, updates) => set((state) => ({
+        habits: state.habits.map(h => h.id === id ? { ...h, ...updates } : h)
       })),
       
       deleteHabit: (id) => set((state) => ({

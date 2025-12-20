@@ -54,4 +54,4 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export type ViewType = 'dashboard' | 'todos' | 'goals' | 'habits' | 'assistant' | 'settings';
+export type ViewType = 'dashboard' | 'todos' | 'goals' | 'habits' | 'assistant' | 'calendar' | 'profile' | 'settings';
