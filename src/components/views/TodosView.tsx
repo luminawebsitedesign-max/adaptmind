@@ -12,6 +12,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
+  Send,
 } from "lucide-react";
 import {
   Dialog,
@@ -53,9 +54,12 @@ export function TodosView() {
   const [newListName, setNewListName] = useState("");
   const [newListIcon, setNewListIcon] = useState("📝");
   const [isAddingList, setIsAddingList] = useState(false);
-  const [addingToList, setAddingToList] = useState<string | null>(null);
-  const [newItemTitle, setNewItemTitle] = useState("");
-  const [newItemPriority, setNewItemPriority] = useState<"low" | "medium" | "high">("medium");
+  
+  // Quick add bar state
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const [quickTaskListId, setQuickTaskListId] = useState<string>(todoLists[0]?.id || "");
+  const [quickTaskPriority, setQuickTaskPriority] = useState<"low" | "medium" | "high">("medium");
+  const [isAddingQuickTask, setIsAddingQuickTask] = useState(false);
   
   // Confirmation states
   const [deleteListConfirm, setDeleteListConfirm] = useState<{ open: boolean; listId: string; listName: string }>({
@@ -90,19 +94,24 @@ export function TodosView() {
     }
   };
 
-  const handleAddItem = (listId: string) => {
-    if (newItemTitle.trim()) {
-      addTodoItem(listId, {
-        title: newItemTitle,
-        priority: newItemPriority,
+  const handleQuickAddTask = () => {
+    if (quickTaskTitle.trim() && quickTaskListId) {
+      setIsAddingQuickTask(true);
+      addTodoItem(quickTaskListId, {
+        title: quickTaskTitle,
+        priority: quickTaskPriority,
         completed: false,
         progress: 0,
-        listId,
+        listId: quickTaskListId,
       });
-      setNewItemTitle("");
-      setNewItemPriority("medium");
-      setAddingToList(null);
+      setQuickTaskTitle("");
       toast.success("Task added");
+      setIsAddingQuickTask(false);
+      
+      // Expand the list if not already expanded
+      if (!expandedLists.includes(quickTaskListId)) {
+        setExpandedLists(prev => [...prev, quickTaskListId]);
+      }
     }
   };
 
@@ -136,12 +145,12 @@ export function TodosView() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold text-gradient-cyan">
-            To-Do Lists
+            Tasks
           </h1>
           <p className="text-muted-foreground mt-1">
             Manage your tasks across multiple lists
@@ -209,29 +218,13 @@ export function TodosView() {
                 )}
                 <span className="text-2xl">{list.icon}</span>
                 <h3 className="font-semibold text-lg">{list.name}</h3>
-                <span className="text-sm text-muted-foreground">
-                  ({list.items.filter((i) => i.completed).length}/{list.items.length})
-                </span>
+                {list.items.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    {list.items.filter((i) => i.completed).length}/{list.items.length}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAddingToList(list.id);
-                        }}
-                        aria-label="Add task to list"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Add task</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -257,54 +250,11 @@ export function TodosView() {
             {/* List Items */}
             {expandedLists.includes(list.id) && (
               <div className="px-4 pb-4 space-y-2 animate-fade-in">
-                {/* Add Item Form */}
-                {addingToList === list.id && (
-                  <div className="flex gap-2 p-3 rounded-lg bg-muted/10">
-                    <Input
-                      placeholder="Task title..."
-                      value={newItemTitle}
-                      onChange={(e) => setNewItemTitle(e.target.value)}
-                      className="flex-1"
-                      autoFocus
-                      onKeyDown={(e) => e.key === "Enter" && handleAddItem(list.id)}
-                    />
-                    <Select
-                      value={newItemPriority}
-                      onValueChange={(v) =>
-                        setNewItemPriority(v as "low" | "medium" | "high")
-                      }
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={() => handleAddItem(list.id)}>Add</Button>
-                    <Button variant="ghost" onClick={() => setAddingToList(null)}>
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-
                 {/* Items */}
                 {list.items.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-3">
-                      No tasks yet in this list
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAddingToList(list.id)}
-                      className="gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add your first task
-                    </Button>
+                  <div className="text-center py-6 text-muted-foreground">
+                    <p className="text-sm">No tasks in this list</p>
+                    <p className="text-xs mt-1">Use the quick add bar below to add tasks</p>
                   </div>
                 ) : (
                   list.items.map((item) => (
@@ -344,6 +294,67 @@ export function TodosView() {
           </div>
         )}
       </div>
+
+      {/* Quick Add Bar - Fixed at bottom */}
+      {todoLists.length > 0 && (
+        <div className="fixed bottom-16 left-0 right-0 px-4 z-40">
+          <div className="max-w-4xl mx-auto ml-64">
+            <div className="glass-strong rounded-2xl p-4 shadow-lg border border-border/30">
+              <div className="flex gap-3 items-center">
+                <Input
+                  value={quickTaskTitle}
+                  onChange={(e) => setQuickTaskTitle(e.target.value)}
+                  placeholder="Add a new task..."
+                  className="flex-1 bg-muted/10 h-11"
+                  onKeyDown={(e) => e.key === "Enter" && handleQuickAddTask()}
+                />
+                <Select
+                  value={quickTaskListId}
+                  onValueChange={setQuickTaskListId}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Select list" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {todoLists.map((list) => (
+                      <SelectItem key={list.id} value={list.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{list.icon}</span>
+                          <span>{list.name}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={quickTaskPriority}
+                  onValueChange={(v) => setQuickTaskPriority(v as "low" | "medium" | "high")}
+                >
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={handleQuickAddTask} 
+                  disabled={!quickTaskTitle.trim() || !quickTaskListId || isAddingQuickTask}
+                  className="glow-cyan h-11 px-6"
+                >
+                  {isAddingQuickTask ? (
+                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Dialogs */}
       <ConfirmDialog
