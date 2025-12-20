@@ -46,24 +46,29 @@ export function AssistantView() {
     }
   }, [error, clearError]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Math.random().toString(36).substring(2, 15),
       role: 'user',
-      content: input,
+      content: messageText,
       timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
-    addChatMessage({ role: 'user', content: input });
-    setInput("");
+    addChatMessage({ role: 'user', content: messageText });
 
     let assistantContent = "";
     
     const upsertAssistant = (chunk: string) => {
-      assistantContent += chunk;
+      // Strip markdown formatting for cleaner responses
+      const cleanChunk = chunk
+        .replace(/\*\*/g, '')
+        .replace(/\*/g, '')
+        .replace(/^#+\s/gm, '')
+        .replace(/`/g, '');
+      assistantContent += cleanChunk;
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant' && !last.content.includes('...thinking')) {
@@ -81,13 +86,25 @@ export function AssistantView() {
     };
 
     const messageHistory = messages.slice(-10).map(m => ({ role: m.role, content: m.content }));
-    messageHistory.push({ role: 'user', content: input });
+    messageHistory.push({ role: 'user', content: messageText });
 
     await streamChat(messageHistory, (delta) => upsertAssistant(delta), () => {
       if (assistantContent) {
         addChatMessage({ role: 'assistant', content: assistantContent });
       }
     });
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+    const messageText = input;
+    setInput("");
+    await sendMessage(messageText);
+  };
+
+  const handleQuickPrompt = async (prompt: string) => {
+    if (isLoading) return;
+    await sendMessage(prompt);
   };
 
   const handleClearChat = () => {
@@ -167,7 +184,13 @@ export function AssistantView() {
         <div className="px-4 py-2 border-t border-border/30">
           <div className="flex gap-2 flex-wrap">
             {quickPrompts.map((prompt) => (
-              <button key={prompt} onClick={() => !isLoading && setInput(prompt)} disabled={isLoading} className="px-3 py-1.5 text-xs rounded-full bg-muted/20 hover:bg-muted/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <button 
+                key={prompt} 
+                onClick={() => handleQuickPrompt(prompt)} 
+                disabled={isLoading} 
+                className="px-3 py-1.5 text-xs rounded-full bg-muted/20 hover:bg-muted/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {isLoading && <span className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />}
                 {prompt}
               </button>
             ))}
@@ -176,9 +199,20 @@ export function AssistantView() {
 
         <div className="p-4 border-t border-border/30">
           <div className="flex gap-2">
-            <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask me anything..." className="flex-1 bg-muted/10" onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} disabled={isLoading} />
+            <Input 
+              value={input} 
+              onChange={(e) => setInput(e.target.value)} 
+              placeholder="Ask me anything..." 
+              className="flex-1 bg-muted/10" 
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} 
+              disabled={isLoading} 
+            />
             <Button onClick={handleSend} disabled={!input.trim() || isLoading} className="glow-cyan">
-              <Send className="w-4 h-4" />
+              {isLoading ? (
+                <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>
