@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
 import adaptmindLogo from '@/assets/adaptmind-logo.png';
+import adaptmindWordmark from '@/assets/adaptmind-wordmark.png';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -97,12 +98,14 @@ export default function Auth() {
           <img 
             src={adaptmindLogo} 
             alt="Adaptmind" 
-            className="w-20 h-20 mx-auto mb-4 object-contain"
+            className="w-24 h-24 mx-auto mb-4 object-contain drop-shadow-lg"
           />
-          <h1 className="text-3xl font-display font-bold text-gradient-cyan">
-            Adaptmind
-          </h1>
-          <p className="text-muted-foreground mt-2">
+          <img 
+            src={adaptmindWordmark} 
+            alt="Adaptmind" 
+            className="h-8 mx-auto object-contain"
+          />
+          <p className="text-muted-foreground mt-3">
             Your intelligent productivity companion
           </p>
         </div>

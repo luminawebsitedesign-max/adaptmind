@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   Download, 
   FileJson, 
@@ -8,32 +10,91 @@ import {
   Database, 
   CheckCircle2,
   Shield,
-  Sparkles
+  Sparkles,
+  Bot,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
 export function ExportDataView() {
-  const { todoLists, goals, habits } = useAppStore();
+  const { todoLists, goals, habits, chatMessages } = useAppStore();
   const [exporting, setExporting] = useState<'json' | 'csv' | null>(null);
+  const [includeAIChats, setIncludeAIChats] = useState(false);
 
+  // Deep export data with full metadata
   const exportData = {
     exportedAt: new Date().toISOString(),
+    version: "2.0",
+    summary: {
+      totalTasks: todoLists.reduce((acc, list) => acc + list.items.length, 0),
+      completedTasks: todoLists.reduce((acc, list) => acc + list.items.filter(i => i.completed).length, 0),
+      totalGoals: goals.length,
+      completedGoals: goals.filter(g => g.progress === 100).length,
+      totalHabits: habits.length,
+      totalAIMessages: includeAIChats ? chatMessages.length : 0,
+    },
     todoLists: todoLists.map((list) => ({
-      ...list,
+      id: list.id,
+      name: list.name,
+      icon: list.icon,
+      color: list.color,
+      itemCount: list.items.length,
       items: list.items.map((item) => ({
-        ...item,
+        id: item.id,
+        title: item.title,
+        description: item.description || null,
+        priority: item.priority,
+        completed: item.completed,
+        progress: item.progress,
+        listName: list.name,
+        listId: list.id,
+        order: item.order,
+        createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
+        completedAt: item.completedAt ? new Date(item.completedAt).toISOString() : null,
         deadline: item.deadline ? new Date(item.deadline).toISOString() : null,
       })),
     })),
     goals: goals.map((goal) => ({
-      ...goal,
+      id: goal.id,
+      title: goal.title,
+      description: goal.description || null,
+      category: goal.category,
+      progress: goal.progress,
+      totalMilestones: goal.milestones.length,
+      completedMilestones: goal.milestones.filter(m => m.completed).length,
+      milestones: goal.milestones.map(m => ({
+        id: m.id,
+        title: m.title,
+        completed: m.completed,
+        completedAt: m.completedAt ? new Date(m.completedAt).toISOString() : null,
+      })),
       createdAt: new Date(goal.createdAt).toISOString(),
+      completedAt: goal.completedAt ? new Date(goal.completedAt).toISOString() : null,
       deadline: goal.deadline ? new Date(goal.deadline).toISOString() : null,
     })),
     habits: habits.map((habit) => ({
-      ...habit,
+      id: habit.id,
+      name: habit.name,
+      icon: habit.icon,
+      frequency: habit.frequency,
+      customDays: habit.customDays || null,
+      currentStreak: habit.streak,
+      bestStreak: habit.bestStreak,
+      totalCompletions: habit.completedDates.length,
+      completionLog: habit.completedDates.map(date => ({
+        date: date,
+        dayOfWeek: new Date(date).toLocaleDateString('en-US', { weekday: 'long' }),
+      })),
       createdAt: new Date(habit.createdAt).toISOString(),
     })),
+    ...(includeAIChats && chatMessages.length > 0 ? {
+      aiInteractions: chatMessages.map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp).toISOString(),
+      }))
+    } : {}),
   };
 
   const downloadFile = (content: string, filename: string, type: string) => {
@@ -50,51 +111,126 @@ export function ExportDataView() {
 
   const handleExportJSON = async () => {
     setExporting('json');
-    // Small delay for visual feedback
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 600));
     const json = JSON.stringify(exportData, null, 2);
     const filename = `adaptmind-export-${new Date().toISOString().split("T")[0]}.json`;
     downloadFile(json, filename, "application/json");
     setExporting(null);
-    toast.success("Data exported as JSON");
+    toast.success("Data exported as JSON", { duration: 4000 });
   };
 
   const handleExportCSV = async () => {
     setExporting('csv');
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const rows: string[] = [];
-
-    // Header
-    rows.push("Type,Name,Status,Details,Created/Deadline");
-
-    // Todo items
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    const sections: string[] = [];
+    
+    // Tasks section with full metadata
+    sections.push("=== TASKS ===");
+    sections.push("List,Task,Description,Priority,Status,Progress,Created,Completed,Deadline");
     todoLists.forEach((list) => {
       list.items.forEach((item) => {
-        rows.push(
-          `Task,"${item.title}",${item.completed ? "Completed" : "Pending"},"List: ${list.name}, Priority: ${item.priority}",${item.deadline ? new Date(item.deadline).toLocaleDateString() : ""}`
-        );
+        const row = [
+          `"${list.name}"`,
+          `"${item.title}"`,
+          `"${item.description || ''}"`,
+          item.priority,
+          item.completed ? "Completed" : "Pending",
+          `${item.progress}%`,
+          item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '',
+          item.completedAt ? new Date(item.completedAt).toLocaleDateString() : '',
+          item.deadline ? new Date(item.deadline).toLocaleDateString() : '',
+        ];
+        sections.push(row.join(","));
       });
     });
-
-    // Goals
+    
+    // Goals section with milestones
+    sections.push("");
+    sections.push("=== GOALS ===");
+    sections.push("Goal,Description,Category,Progress,Milestones Completed,Created,Completed,Deadline");
     goals.forEach((goal) => {
-      rows.push(
-        `Goal,"${goal.title}",${goal.progress}%,"${goal.milestones.filter((m) => m.completed).length}/${goal.milestones.length} milestones",${new Date(goal.createdAt).toLocaleDateString()}`
-      );
+      const completedMilestones = goal.milestones.filter(m => m.completed).length;
+      const row = [
+        `"${goal.title}"`,
+        `"${goal.description || ''}"`,
+        goal.category,
+        `${goal.progress}%`,
+        `${completedMilestones}/${goal.milestones.length}`,
+        new Date(goal.createdAt).toLocaleDateString(),
+        goal.completedAt ? new Date(goal.completedAt).toLocaleDateString() : '',
+        goal.deadline ? new Date(goal.deadline).toLocaleDateString() : '',
+      ];
+      sections.push(row.join(","));
     });
-
-    // Habits
+    
+    // Milestones detail
+    sections.push("");
+    sections.push("=== MILESTONES ===");
+    sections.push("Goal,Milestone,Status,Completed At");
+    goals.forEach((goal) => {
+      goal.milestones.forEach((m) => {
+        const row = [
+          `"${goal.title}"`,
+          `"${m.title}"`,
+          m.completed ? "Done" : "Pending",
+          m.completedAt ? new Date(m.completedAt).toLocaleDateString() : '',
+        ];
+        sections.push(row.join(","));
+      });
+    });
+    
+    // Habits section with streaks and logs
+    sections.push("");
+    sections.push("=== HABITS ===");
+    sections.push("Habit,Frequency,Current Streak,Best Streak,Total Completions,Created");
     habits.forEach((habit) => {
-      rows.push(
-        `Habit,"${habit.name}","Streak: ${habit.streak}","Best: ${habit.bestStreak}, Frequency: ${habit.frequency}",${new Date(habit.createdAt).toLocaleDateString()}`
-      );
+      const row = [
+        `"${habit.name}"`,
+        habit.frequency,
+        habit.streak,
+        habit.bestStreak,
+        habit.completedDates.length,
+        new Date(habit.createdAt).toLocaleDateString(),
+      ];
+      sections.push(row.join(","));
     });
+    
+    // Habit completion log
+    sections.push("");
+    sections.push("=== HABIT COMPLETION LOG ===");
+    sections.push("Habit,Date,Day of Week");
+    habits.forEach((habit) => {
+      habit.completedDates.forEach((date) => {
+        const row = [
+          `"${habit.name}"`,
+          date,
+          new Date(date).toLocaleDateString('en-US', { weekday: 'long' }),
+        ];
+        sections.push(row.join(","));
+      });
+    });
+    
+    // AI interactions if included
+    if (includeAIChats && chatMessages.length > 0) {
+      sections.push("");
+      sections.push("=== AI INTERACTIONS ===");
+      sections.push("Role,Message,Timestamp");
+      chatMessages.forEach((msg) => {
+        const row = [
+          msg.role,
+          `"${msg.content.replace(/"/g, '""').substring(0, 500)}"`,
+          new Date(msg.timestamp).toISOString(),
+        ];
+        sections.push(row.join(","));
+      });
+    }
 
-    const csv = rows.join("\n");
+    const csv = sections.join("\n");
     const filename = `adaptmind-export-${new Date().toISOString().split("T")[0]}.csv`;
     downloadFile(csv, filename, "text/csv");
     setExporting(null);
-    toast.success("Data exported as CSV");
+    toast.success("Data exported as CSV", { duration: 4000 });
   };
 
   const totalTasks = todoLists.reduce((acc, list) => acc + list.items.length, 0);
@@ -115,7 +251,7 @@ export function ExportDataView() {
           Export Your Data
         </h1>
         <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-          Download all your productivity data securely. Your data belongs to you.
+          Download all your productivity data with full metadata. Your data belongs to you.
         </p>
       </div>
 
@@ -127,7 +263,7 @@ export function ExportDataView() {
           </div>
           <div>
             <h2 className="font-semibold text-lg">Your Data Summary</h2>
-            <p className="text-sm text-muted-foreground">Everything that will be included in the export</p>
+            <p className="text-sm text-muted-foreground">Full metadata included in the export</p>
           </div>
         </div>
         
@@ -150,12 +286,70 @@ export function ExportDataView() {
               {goals.length}
             </p>
             <p className="text-sm text-muted-foreground mt-1">Goals</p>
+            <p className="text-xs text-muted-foreground/70">{goals.reduce((a, g) => a + g.milestones.length, 0)} milestones</p>
           </div>
           <div className="p-4 rounded-xl bg-muted/10 border border-border/20 transition-all hover:bg-muted/20">
             <p className="text-3xl font-display font-bold text-primary">
               {habits.length}
             </p>
             <p className="text-sm text-muted-foreground mt-1">Habits</p>
+            <p className="text-xs text-muted-foreground/70">{habits.reduce((a, h) => a + h.completedDates.length, 0)} logs</p>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Chats Toggle */}
+      {chatMessages.length > 0 && (
+        <div className="glass rounded-2xl p-5 hover-glow">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                <Bot className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <Label htmlFor="include-ai" className="font-semibold">Include AI Conversations</Label>
+                <p className="text-sm text-muted-foreground">{chatMessages.length} messages available</p>
+              </div>
+            </div>
+            <Switch
+              id="include-ai"
+              checked={includeAIChats}
+              onCheckedChange={setIncludeAIChats}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* What's Included */}
+      <div className="glass rounded-2xl p-6">
+        <h3 className="font-semibold text-lg mb-4">What's Included in Your Export</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="space-y-2">
+            <p className="font-medium text-primary">Tasks</p>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• Creation & completion dates</li>
+              <li>• List associations</li>
+              <li>• Priority & progress</li>
+              <li>• Deadlines</li>
+            </ul>
+          </div>
+          <div className="space-y-2">
+            <p className="font-medium text-secondary">Goals</p>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• All milestones</li>
+              <li>• Completion status</li>
+              <li>• Progress history</li>
+              <li>• Milestone timestamps</li>
+            </ul>
+          </div>
+          <div className="space-y-2">
+            <p className="font-medium text-accent">Habits</p>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• Daily completion logs</li>
+              <li>• Streak history</li>
+              <li>• Best streaks</li>
+              <li>• Frequency settings</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -197,7 +391,7 @@ export function ExportDataView() {
             className="w-full gap-2 glow-cyan h-12 text-base"
           >
             {exporting === 'json' ? (
-              <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Download className="w-5 h-5" />
             )}
@@ -226,11 +420,11 @@ export function ExportDataView() {
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="w-4 h-4 text-secondary" />
-              <span>Easy viewing and analysis</span>
+              <span>Sectioned data with headers</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="w-4 h-4 text-secondary" />
-              <span>Simple flat data structure</span>
+              <span>Includes completion logs</span>
             </div>
           </div>
 
@@ -241,7 +435,7 @@ export function ExportDataView() {
             className="w-full gap-2 glow-magenta h-12 text-base"
           >
             {exporting === 'csv' ? (
-              <span className="w-5 h-5 border-2 border-secondary-foreground/30 border-t-secondary-foreground rounded-full animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Download className="w-5 h-5" />
             )}
