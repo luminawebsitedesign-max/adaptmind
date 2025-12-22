@@ -185,17 +185,15 @@ export function Sidebar() {
                     ? "bg-primary/20 text-primary neon-border"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/20"
                 )}
-                aria-label="Export Data"
+                aria-label="Export your data"
               >
                 <Download className="w-5 h-5" />
                 {!sidebarCollapsed && <span className="font-medium">Export Data</span>}
               </button>
             </TooltipTrigger>
-            {sidebarCollapsed && (
-              <TooltipContent side="right" className="font-medium">
-                Export Data
-              </TooltipContent>
-            )}
+            <TooltipContent side="right" className="font-medium">
+              Download your tasks, goals, habits, and more
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -230,32 +228,30 @@ export function Sidebar() {
         </DropdownMenu>
 
         {/* Collapse toggle - desktop only */}
-        <div className="hidden md:block">
+        <div className="hidden md:block pt-2 border-t border-border/20">
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   onClick={toggleSidebar}
-                  className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                  className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground h-9"
                   aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                   {sidebarCollapsed ? (
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                   ) : (
                     <>
-                      <ChevronLeft className="w-5 h-5" />
-                      <span className="font-medium">Collapse</span>
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="text-sm">Collapse</span>
                     </>
                   )}
                 </Button>
               </TooltipTrigger>
-              {sidebarCollapsed && (
-                <TooltipContent side="right" className="font-medium">
-                  Expand sidebar
-                </TooltipContent>
-              )}
+              <TooltipContent side="right" className="font-medium">
+                {sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
