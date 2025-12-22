@@ -53,18 +53,18 @@ export function DashboardView() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-gradient-cyan">
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-cyan">
             Welcome Back
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Here's your productivity overview for today
           </p>
         </div>
         <button 
           onClick={() => setCurrentView("calendar")}
-          className="text-right hover:bg-muted/20 p-2 rounded-lg transition-colors group"
+          className="text-left sm:text-right hover:bg-muted/20 p-2 rounded-lg transition-colors group"
         >
           <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
             {new Date().toLocaleDateString("en-US", {
@@ -175,47 +175,47 @@ export function DashboardView() {
 
       {/* Secondary Stats - Only show if there's data */}
       {hasData && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass rounded-xl p-4 hover:bg-muted/5 transition-colors">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="glass rounded-xl p-3 md:p-4 hover:bg-muted/5 transition-colors">
             <div className="flex items-center gap-2 text-primary mb-2">
-              <TrendingUp className="w-4 h-4" />
-              <span className="text-sm font-medium">Total Streak</span>
+              <TrendingUp className="w-4 h-4 shrink-0" />
+              <span className="text-xs md:text-sm font-medium truncate">Total Streak</span>
             </div>
-            <p className="text-2xl font-display font-bold">{totalStreak} days</p>
+            <p className="text-xl md:text-2xl font-display font-bold">{totalStreak} days</p>
           </div>
 
-          <div className="glass rounded-xl p-4 hover:bg-muted/5 transition-colors">
+          <div className="glass rounded-xl p-3 md:p-4 hover:bg-muted/5 transition-colors">
             <div className="flex items-center gap-2 text-secondary mb-2">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">Best Streak</span>
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span className="text-xs md:text-sm font-medium truncate">Best Streak</span>
             </div>
-            <p className="text-2xl font-display font-bold">{bestStreak} days</p>
+            <p className="text-xl md:text-2xl font-display font-bold">{bestStreak} days</p>
           </div>
 
-          <div className="glass rounded-xl p-4 hover:bg-muted/5 transition-colors">
+          <div className="glass rounded-xl p-3 md:p-4 hover:bg-muted/5 transition-colors">
             <div className="flex items-center gap-2 text-accent mb-2">
-              <Target className="w-4 h-4" />
-              <span className="text-sm font-medium">Avg. Goal Progress</span>
+              <Target className="w-4 h-4 shrink-0" />
+              <span className="text-xs md:text-sm font-medium truncate">Avg. Goal Progress</span>
             </div>
-            <p className="text-2xl font-display font-bold">{Math.round(avgGoalProgress)}%</p>
+            <p className="text-xl md:text-2xl font-display font-bold">{Math.round(avgGoalProgress)} %</p>
           </div>
 
-          <div className="glass rounded-xl p-4 hover:bg-muted/5 transition-colors">
+          <div className="glass rounded-xl p-3 md:p-4 hover:bg-muted/5 transition-colors">
             <div className="flex items-center gap-2 text-primary mb-2">
-              <CheckSquare className="w-4 h-4" />
-              <span className="text-sm font-medium">Completion Rate</span>
+              <CheckSquare className="w-4 h-4 shrink-0" />
+              <span className="text-xs md:text-sm font-medium truncate">Completion Rate</span>
             </div>
-            <p className="text-2xl font-display font-bold">{Math.round(taskCompletion)}%</p>
+            <p className="text-xl md:text-2xl font-display font-bold">{Math.round(taskCompletion)} %</p>
           </div>
         </div>
       )}
 
       {/* Mini Calendar Week Widget */}
-      <div className="glass rounded-2xl p-6 hover-glow transition-all duration-300">
-        <div className="flex items-center justify-between mb-4">
+      <div className="glass rounded-2xl p-4 md:p-6 hover-glow transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-lg">
+            <Calendar className="w-5 h-5 text-primary shrink-0" />
+            <h3 className="font-semibold text-base md:text-lg">
               {isSameDay(weekStart, startOfWeek(new Date(), { weekStartsOn: 1 })) 
                 ? "This Week" 
                 : format(weekStart, "MMM d") + " - " + format(addDays(weekStart, 6), "MMM d")}
@@ -225,40 +225,41 @@ export function DashboardView() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(subWeeks(weekStart, 1))}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(subWeeks(weekStart, 1))} aria-label="Previous week">
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-sm text-muted-foreground min-w-[140px] text-center">
+            <span className="text-xs md:text-sm text-muted-foreground min-w-[100px] md:min-w-[140px] text-center">
               {format(weekStart, "MMM d")} - {format(addDays(weekStart, 6), "MMM d")}
             </span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(addWeeks(weekStart, 1))} aria-label="Next week">
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1 md:gap-2">
           {weekDays.map(({ day, tasksOnDay, habitsOnDay, goalsOnDay, isToday }) => (
             <button
               key={day.toISOString()}
               onClick={() => setCurrentView("calendar")}
               className={cn(
-                "flex flex-col items-center p-2 rounded-lg transition-all hover:bg-muted/20",
+                "flex flex-col items-center p-1 md:p-2 rounded-lg transition-all hover:bg-muted/20",
                 isToday && "bg-primary/20 ring-1 ring-primary"
               )}
+              aria-label={`View ${format(day, "EEEE, MMMM d")}`}
             >
-              <span className="text-xs text-muted-foreground">{format(day, "EEE")}</span>
-              <span className={cn("text-lg font-semibold", isToday && "text-primary")}>{format(day, "d")}</span>
+              <span className="text-[10px] md:text-xs text-muted-foreground">{format(day, "EEE")}</span>
+              <span className={cn("text-sm md:text-lg font-semibold", isToday && "text-primary")}>{format(day, "d")}</span>
               <div className="flex gap-0.5 mt-1">
-                {tasksOnDay.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                {habitsOnDay.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
-                {goalsOnDay.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-secondary" />}
+                {tasksOnDay.length > 0 && <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-primary" />}
+                {habitsOnDay.length > 0 && <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-accent" />}
+                {goalsOnDay.length > 0 && <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-secondary" />}
               </div>
             </button>
           ))}
         </div>
         <Button 
           variant="ghost" 
-          className="w-full mt-4 text-muted-foreground hover:text-primary" 
+          className="w-full mt-4 text-muted-foreground hover:text-primary text-sm" 
           onClick={() => setCurrentView("calendar")}
         >
           Open Full Calendar

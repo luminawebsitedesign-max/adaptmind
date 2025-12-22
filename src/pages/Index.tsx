@@ -53,7 +53,7 @@ const Index = () => {
       
       <main
         className={cn(
-          "flex-1 transition-all duration-200 p-4 md:p-6 lg:p-8 pb-20",
+          "flex-1 transition-all duration-200 p-4 pt-16 md:pt-4 md:p-6 lg:p-8 pb-20",
           sidebarCollapsed ? "md:ml-16" : "md:ml-64"
         )}
       >

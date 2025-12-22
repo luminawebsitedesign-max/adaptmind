@@ -71,29 +71,29 @@ export function CalendarView() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-gradient-cyan">Calendar</h1>
-          <p className="text-muted-foreground mt-1">View your tasks, goals, and habits</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-cyan">Calendar</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">View your tasks, goals, and habits</p>
         </div>
-        <Button variant="outline" onClick={handleToday} className="gap-2">
+        <Button variant="outline" onClick={handleToday} className="gap-2 w-fit">
           <CalendarIcon className="w-4 h-4" />
           Today
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-3 glass rounded-2xl p-4">
+        <div className="lg:col-span-3 glass rounded-2xl p-3 md:p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base md:text-lg font-semibold">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth} aria-label="Previous month">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth} aria-label="Next month">
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
