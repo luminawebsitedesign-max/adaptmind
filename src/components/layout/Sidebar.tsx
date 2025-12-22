@@ -14,6 +14,7 @@ import {
   LogOut,
   User,
   Calendar,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ViewType } from "@/types";
@@ -36,6 +37,7 @@ const navItems: { id: ViewType; label: string; icon: React.ReactNode }[] = [
   { id: "todos", label: "Tasks", icon: <CheckSquare className="w-5 h-5" /> },
   { id: "goals", label: "Goals", icon: <Target className="w-5 h-5" /> },
   { id: "habits", label: "Habits", icon: <Repeat className="w-5 h-5" /> },
+  { id: "finance", label: "Finance", icon: <Wallet className="w-5 h-5" /> },
   { id: "calendar", label: "Calendar", icon: <Calendar className="w-5 h-5" /> },
   { id: "assistant", label: "AI Assistant", icon: <Bot className="w-5 h-5" /> },
 ];

@@ -8,6 +8,8 @@ export interface TodoItem {
   progress: number;
   listId: string;
   order: number;
+  createdAt?: Date;
+  completedAt?: Date;
 }
 
 export interface TodoList {
@@ -27,12 +29,14 @@ export interface Goal {
   milestones: Milestone[];
   deadline?: Date;
   createdAt: Date;
+  completedAt?: Date;
 }
 
 export interface Milestone {
   id: string;
   title: string;
   completed: boolean;
+  completedAt?: Date;
 }
 
 export interface Habit {
@@ -54,4 +58,36 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export type ViewType = 'dashboard' | 'todos' | 'goals' | 'habits' | 'assistant' | 'calendar' | 'profile' | 'settings';
+// Finance / Portfolio Types
+export interface Portfolio {
+  id: string;
+  name: string;
+  icon: string;
+  type: 'personal' | 'investment' | 'savings' | 'custom';
+  balance: number;
+  currency: string;
+  createdAt: Date;
+}
+
+export interface Transaction {
+  id: string;
+  portfolioId: string;
+  type: 'income' | 'expense' | 'transfer';
+  amount: number;
+  description: string;
+  category: string;
+  date: Date;
+  createdAt: Date;
+}
+
+export interface FinanceGoal {
+  id: string;
+  portfolioId: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline?: Date;
+  createdAt: Date;
+}
+
+export type ViewType = 'dashboard' | 'todos' | 'goals' | 'habits' | 'assistant' | 'calendar' | 'profile' | 'settings' | 'finance';
