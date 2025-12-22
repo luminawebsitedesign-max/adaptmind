@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
 import adaptmindLogo from "@/assets/adaptmind-logo.png";
+import adaptmindWordmark from "@/assets/adaptmind-wordmark.png";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -62,15 +63,17 @@ export function Sidebar() {
             src={adaptmindLogo} 
             alt="Adaptmind" 
             className={cn(
-              "object-contain transition-all duration-300",
-              sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"
+              "object-contain transition-all duration-300 drop-shadow-lg",
+              sidebarCollapsed ? "w-10 h-10" : "w-11 h-11"
             )}
           />
           {!sidebarCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-display text-xl font-bold text-gradient-cyan leading-tight">
-                Adaptmind
-              </span>
+            <div className="flex flex-col gap-1">
+              <img 
+                src={adaptmindWordmark} 
+                alt="Adaptmind" 
+                className="h-5 object-contain object-left"
+              />
               <span className="text-[10px] text-muted-foreground/70 tracking-wider uppercase">AI Productivity</span>
             </div>
           )}
