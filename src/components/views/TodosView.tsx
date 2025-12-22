@@ -323,9 +323,12 @@ export function TodosView() {
                       )}
                     >
                       {list.items.length === 0 ? (
-                        <div className="text-center py-6 text-muted-foreground">
-                          <p className="text-sm">No tasks in this list</p>
-                          <p className="text-xs mt-1">Use the quick add bar below or drag tasks here</p>
+                        <div className="text-center py-8 text-muted-foreground">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Plus className="w-6 h-6 text-primary/60" />
+                          </div>
+                          <p className="text-sm font-medium">No tasks yet</p>
+                          <p className="text-xs mt-1 text-muted-foreground/70">Use the quick add bar below or drag tasks here to get started!</p>
                         </div>
                       ) : (
                         list.items.map((item, index) => (
@@ -386,9 +389,9 @@ export function TodosView() {
 
       {/* Quick Add Bar - Fixed at bottom */}
       {todoLists.length > 0 && (
-        <div className="fixed bottom-16 left-0 right-0 px-4 z-40">
-          <div className="max-w-4xl mx-auto ml-64">
-            <div className="glass-strong rounded-2xl p-4 shadow-lg border border-border/30">
+        <div className="fixed bottom-20 left-0 right-0 px-4 z-30">
+          <div className="max-w-4xl mx-auto md:ml-64">
+            <div className="glass-strong rounded-2xl p-4 shadow-xl border border-border/30">
               <div className="flex gap-3 items-center">
                 <Input
                   value={quickTaskTitle}
@@ -501,26 +504,37 @@ function TaskItem({
     <div
       className={cn(
         "flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-        "bg-muted/10 hover:bg-muted/20 group",
+        "bg-muted/10 hover:bg-muted/20 group cursor-pointer",
         item.completed && "opacity-70"
       )}
+      onClick={onEdit}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onEdit()}
+      aria-label={`Edit task: ${item.title}`}
     >
-      <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+      <div 
+        {...dragHandleProps} 
+        className="cursor-grab active:cursor-grabbing"
+        onClick={(e) => e.stopPropagation()}
+      >
         <GripVertical className="w-4 h-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <Checkbox
-        checked={item.completed}
-        onCheckedChange={onToggle}
-        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-        aria-label={`Mark "${item.title}" as ${item.completed ? "incomplete" : "complete"}`}
-      />
+      <div onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={item.completed}
+          onCheckedChange={onToggle}
+          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+          aria-label={`Mark "${item.title}" as ${item.completed ? "incomplete" : "complete"}`}
+        />
+      </div>
 
       <div className="flex-1 min-w-0">
         <p
           className={cn(
             "font-medium truncate transition-all",
-            item.completed && "line-through text-muted-foreground"
+            item.completed && "text-muted-foreground"
           )}
         >
           {item.title}
@@ -558,7 +572,7 @@ function TaskItem({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onEdit}
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
                 className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground h-8 w-8 transition-opacity"
                 aria-label="Edit task"
               >
@@ -574,7 +588,7 @@ function TaskItem({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onDelete}
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
                 className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive h-8 w-8 transition-opacity"
                 aria-label="Delete task"
               >

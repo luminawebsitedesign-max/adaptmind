@@ -17,6 +17,7 @@ export function ProgressRing({
   color = 'cyan',
   showLabel = true,
 }: ProgressRingProps) {
+  // Make responsive: use CSS clamp for sizing
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
@@ -37,8 +38,19 @@ export function ProgressRing({
   };
 
   return (
-    <div className={cn("relative inline-flex items-center justify-center", className)}>
-      <svg width={size} height={size} className="transform -rotate-90">
+    <div 
+      className={cn("relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto", className)}
+      style={{ maxWidth: size, maxHeight: size }}
+    >
+      <svg 
+        viewBox={`0 0 ${size} ${size}`} 
+        className="w-full h-full transform -rotate-90"
+        aria-label={`Progress: ${Math.round(progress)}%`}
+        role="progressbar"
+        aria-valuenow={Math.round(progress)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         {/* Background circle */}
         <circle
           cx={size / 2}
@@ -67,7 +79,7 @@ export function ProgressRing({
       </svg>
       {showLabel && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold font-display">{Math.round(progress)}%</span>
+          <span className="text-lg sm:text-xl md:text-2xl font-bold font-display">{Math.round(progress)}%</span>
         </div>
       )}
     </div>
