@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +17,8 @@ import {
   User,
   Calendar,
   Wallet,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ViewType } from "@/types";
@@ -46,16 +49,45 @@ const navItems: { id: ViewType; label: string; icon: React.ReactNode }[] = [
 export function Sidebar() {
   const { currentView, setCurrentView, sidebarCollapsed, toggleSidebar } = useAppStore();
   const { user, profile, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
 
+  const handleNavClick = (viewId: ViewType) => {
+    setCurrentView(viewId);
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 h-full glass-strong z-50 transition-all duration-300 flex flex-col",
-        sidebarCollapsed ? "w-16" : "w-64"
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="fixed top-4 left-4 z-[60] md:hidden w-10 h-10 rounded-lg glass-strong flex items-center justify-center"
+        aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+      >
+        {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
-    >
+
+      <aside
+        className={cn(
+          "fixed left-0 top-0 h-full glass-strong z-50 transition-all duration-300 flex flex-col",
+          // Mobile: slide in/out
+          "md:translate-x-0",
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+          // Desktop: width based on collapsed state
+          sidebarCollapsed ? "md:w-16" : "md:w-64",
+          "w-64"
+        )}
+      >
       {/* Logo */}
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center gap-3">
@@ -87,7 +119,7 @@ export function Sidebar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => setCurrentView(item.id)}
+                  onClick={() => handleNavClick(item.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
                     "hover:bg-primary/10 hover-glow",
@@ -120,7 +152,7 @@ export function Sidebar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => setCurrentView('profile')}
+                onClick={() => handleNavClick('profile')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
                   currentView === 'profile'
@@ -146,7 +178,7 @@ export function Sidebar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => setCurrentView('settings')}
+                onClick={() => handleNavClick('settings')}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
                   currentView === 'settings'
@@ -197,34 +229,38 @@ export function Sidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-                aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {sidebarCollapsed ? (
-                  <ChevronRight className="w-5 h-5" />
-                ) : (
-                  <>
-                    <ChevronLeft className="w-5 h-5" />
-                    <span className="font-medium">Collapse</span>
-                  </>
-                )}
-              </Button>
-            </TooltipTrigger>
-            {sidebarCollapsed && (
-              <TooltipContent side="right" className="font-medium">
-                Expand sidebar
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        {/* Collapse toggle - desktop only */}
+        <div className="hidden md:block">
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                  aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                >
+                  {sidebarCollapsed ? (
+                    <ChevronRight className="w-5 h-5" />
+                  ) : (
+                    <>
+                      <ChevronLeft className="w-5 h-5" />
+                      <span className="font-medium">Collapse</span>
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              {sidebarCollapsed && (
+                <TooltipContent side="right" className="font-medium">
+                  Expand sidebar
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </aside>
+    </>
   );
 }
