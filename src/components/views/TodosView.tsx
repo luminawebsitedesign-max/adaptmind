@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
+import { useCompletionSound } from "@/hooks/useCompletionSound";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditTaskDialog } from "@/components/ui/edit-task-dialog";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 import {
   Plus,
   Trash2,
@@ -48,7 +55,11 @@ export function TodosView() {
     addTodoItem,
     updateTodoItem,
     deleteTodoItem,
+    reorderTodoItems,
+    moveTodoItem,
   } = useAppStore();
+
+  const { playCompletionSound } = useCompletionSound();
 
   const [expandedLists, setExpandedLists] = useState<string[]>(
     todoLists.map((l) => l.id)
@@ -113,7 +124,6 @@ export function TodosView() {
       toast.success("Task added");
       setIsAddingQuickTask(false);
       
-      // Expand the list if not already expanded
       if (!expandedLists.includes(quickTaskListId)) {
         setExpandedLists(prev => [...prev, quickTaskListId]);
       }
@@ -139,9 +149,49 @@ export function TodosView() {
       progress: item.completed ? 0 : 100,
     });
     if (!wasCompleted) {
-      toast.success("Task completed!");
+      playCompletionSound();
+      toast.success("Task completed! 🎉");
     }
   };
+
+  const handleDragEnd = useCallback((result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+
+    // Same position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const sourceListId = source.droppableId;
+    const destListId = destination.droppableId;
+
+    if (sourceListId === destListId) {
+      // Reorder within same list
+      const list = todoLists.find(l => l.id === sourceListId);
+      if (!list) return;
+
+      const newItems = Array.from(list.items);
+      const [removed] = newItems.splice(source.index, 1);
+      newItems.splice(destination.index, 0, removed);
+
+      // Update order
+      const reorderedItems = newItems.map((item, index) => ({
+        ...item,
+        order: index,
+      }));
+
+      reorderTodoItems(sourceListId, reorderedItems);
+    } else {
+      // Move to different list
+      moveTodoItem(draggableId, sourceListId, destListId);
+      toast.success("Task moved");
+    }
+  }, [todoLists, reorderTodoItems, moveTodoItem]);
 
   const priorityColors = {
     low: "bg-primary/20 text-primary",
@@ -158,7 +208,7 @@ export function TodosView() {
             Tasks
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your tasks across multiple lists
+            Drag and drop to reorder or move between lists
           </p>
         </div>
 
@@ -206,100 +256,126 @@ export function TodosView() {
         </Dialog>
       </div>
 
-      {/* Lists */}
-      <div className="space-y-4">
-        {todoLists.map((list) => (
-          <div key={list.id} className="glass rounded-2xl overflow-hidden">
-            {/* List Header */}
-            <div
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/10 transition-colors"
-              onClick={() => toggleList(list.id)}
-            >
-              <div className="flex items-center gap-3">
-                {expandedLists.includes(list.id) ? (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform" />
-                )}
-                <span className="text-2xl">{list.icon}</span>
-                <h3 className="font-semibold text-lg">{list.name}</h3>
-                {list.items.length > 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    {list.items.filter((i) => i.completed).length}/{list.items.length}
-                  </span>
-                )}
+      {/* Lists with Drag and Drop */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="space-y-4">
+          {todoLists.map((list) => (
+            <div key={list.id} className="glass rounded-2xl overflow-hidden">
+              {/* List Header */}
+              <div
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/10 transition-colors"
+                onClick={() => toggleList(list.id)}
+              >
+                <div className="flex items-center gap-3">
+                  {expandedLists.includes(list.id) ? (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform" />
+                  )}
+                  <span className="text-2xl">{list.icon}</span>
+                  <h3 className="font-semibold text-lg">{list.name}</h3>
+                  {list.items.length > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      {list.items.filter((i) => i.completed).length}/{list.items.length}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteListConfirm({ open: true, listId: list.id, listName: list.name });
+                          }}
+                          className="text-destructive hover:text-destructive"
+                          aria-label="Delete list"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete list</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteListConfirm({ open: true, listId: list.id, listName: list.name });
-                        }}
-                        className="text-destructive hover:text-destructive"
-                        aria-label="Delete list"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Delete list</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
 
-            {/* List Items */}
-            {expandedLists.includes(list.id) && (
-              <div className="px-4 pb-4 space-y-2 animate-fade-in">
-                {/* Items */}
-                {list.items.length === 0 ? (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <p className="text-sm">No tasks in this list</p>
-                    <p className="text-xs mt-1">Use the quick add bar below to add tasks</p>
-                  </div>
-                ) : (
-                  list.items.map((item) => (
-                    <TaskItem
-                      key={item.id}
-                      item={item}
-                      listId={list.id}
-                      onToggle={() => handleToggleItem(list.id, item)}
-                      onDelete={() => setDeleteItemConfirm({ 
-                        open: true, 
-                        listId: list.id, 
-                        itemId: item.id, 
-                        itemTitle: item.title 
-                      })}
-                      onEdit={() => setEditingTask({ task: item, listId: list.id })}
-                      priorityColors={priorityColors}
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-
-        {todoLists.length === 0 && (
-          <div className="glass rounded-2xl p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-8 h-8 text-primary" />
+              {/* List Items with Drag and Drop */}
+              {expandedLists.includes(list.id) && (
+                <Droppable droppableId={list.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={cn(
+                        "px-4 pb-4 space-y-2 min-h-[60px] transition-colors",
+                        snapshot.isDraggingOver && "bg-primary/5"
+                      )}
+                    >
+                      {list.items.length === 0 ? (
+                        <div className="text-center py-6 text-muted-foreground">
+                          <p className="text-sm">No tasks in this list</p>
+                          <p className="text-xs mt-1">Use the quick add bar below or drag tasks here</p>
+                        </div>
+                      ) : (
+                        list.items.map((item, index) => (
+                          <Draggable key={item.id} draggableId={item.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={cn(
+                                  "transition-shadow",
+                                  snapshot.isDragging && "shadow-lg ring-2 ring-primary/50"
+                                )}
+                              >
+                                <TaskItem
+                                  item={item}
+                                  listId={list.id}
+                                  onToggle={() => handleToggleItem(list.id, item)}
+                                  onDelete={() => setDeleteItemConfirm({ 
+                                    open: true, 
+                                    listId: list.id, 
+                                    itemId: item.id, 
+                                    itemTitle: item.title 
+                                  })}
+                                  onEdit={() => setEditingTask({ task: item, listId: list.id })}
+                                  priorityColors={priorityColors}
+                                  dragHandleProps={provided.dragHandleProps}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        ))
+                      )}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              )}
             </div>
-            <h3 className="font-semibold text-lg mb-2">No lists yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Create your first list to start organizing your tasks
-            </p>
-            <Button onClick={() => setIsAddingList(true)} className="gap-2 glow-cyan">
-              <Plus className="w-4 h-4" />
-              Create Your First List
-            </Button>
-          </div>
-        )}
-      </div>
+          ))}
+
+          {todoLists.length === 0 && (
+            <div className="glass rounded-2xl p-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Plus className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">No lists yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Create your first list to start organizing your tasks
+              </p>
+              <Button onClick={() => setIsAddingList(true)} className="gap-2 glow-cyan">
+                <Plus className="w-4 h-4" />
+                Create Your First List
+              </Button>
+            </div>
+          )}
+        </div>
+      </DragDropContext>
 
       {/* Quick Add Bar - Fixed at bottom */}
       {todoLists.length > 0 && (
@@ -404,6 +480,7 @@ function TaskItem({
   onDelete,
   onEdit,
   priorityColors,
+  dragHandleProps,
 }: {
   item: TodoItem;
   listId: string;
@@ -411,6 +488,7 @@ function TaskItem({
   onDelete: () => void;
   onEdit: () => void;
   priorityColors: Record<string, string>;
+  dragHandleProps?: any;
 }) {
   return (
     <div
@@ -420,7 +498,9 @@ function TaskItem({
         item.completed && "opacity-70"
       )}
     >
-      <GripVertical className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 cursor-grab transition-opacity" />
+      <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+      </div>
 
       <Checkbox
         checked={item.completed}

@@ -14,45 +14,104 @@ export function useAIChat() {
   const { todoLists, goals, habits } = useAppStore();
 
   const getContext = useCallback(() => {
-    const totalTasks = todoLists.reduce((acc, list) => acc + list.items.length, 0);
-    const completedTasks = todoLists.reduce(
-      (acc, list) => acc + list.items.filter((i) => i.completed).length,
-      0
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    // Get all tasks with their list information
+    const allTasks = todoLists.flatMap(list => 
+      list.items.map(item => ({
+        id: item.id,
+        title: item.title,
+        listId: list.id,
+        listName: list.name,
+        priority: item.priority,
+        completed: item.completed,
+        deadline: item.deadline ? new Date(item.deadline).toLocaleDateString() : undefined,
+      }))
     );
+    
+    const totalTasks = allTasks.length;
+    const completedTasks = allTasks.filter(t => t.completed).length;
     
     const avgGoalProgress = goals.length > 0
       ? Math.round(goals.reduce((acc, g) => acc + g.progress, 0) / goals.length)
       : 0;
     
-    const todayStr = new Date().toISOString().split('T')[0];
     const habitsCompletedToday = habits.filter((h) =>
       h.completedDates.includes(todayStr)
     ).length;
     
-    const topStreak = habits.reduce((max, h) => Math.max(max, h.streak), 0);
+    const topStreak = habits.reduce((max, h) => Math.max(max, h.bestStreak), 0);
+
+    // Get user preferences from localStorage
+    const userPreferences = localStorage.getItem('adaptmind-ai-personality') || undefined;
 
     return {
       tasks: {
         pending: totalTasks - completedTasks,
         completed: completedTasks,
         total: totalTasks,
+        lists: todoLists.map(l => ({
+          id: l.id,
+          name: l.name,
+          icon: l.icon,
+          taskCount: l.items.length,
+        })),
+        allTasks,
       },
       goals: {
         count: goals.length,
         avgProgress: avgGoalProgress,
+        all: goals.map(g => ({
+          id: g.id,
+          title: g.title,
+          progress: g.progress,
+          category: g.category,
+          milestones: g.milestones.map(m => ({
+            title: m.title,
+            completed: m.completed,
+          })),
+        })),
       },
       habits: {
         total: habits.length,
         completedToday: habitsCompletedToday,
         topStreak,
+        all: habits.map(h => ({
+          id: h.id,
+          name: h.name,
+          icon: h.icon,
+          frequency: h.frequency,
+          streak: h.streak,
+          completedToday: h.completedDates.includes(todayStr),
+        })),
       },
+      userPreferences,
     };
   }, [todoLists, goals, habits]);
+
+  const parseAIActions = useCallback((content: string) => {
+    const actions: { type: string; params: string[] }[] = [];
+    const actionRegex = /\[ACTION:([A-Z_]+)\|([^\]]+)\]/g;
+    let match;
+    
+    while ((match = actionRegex.exec(content)) !== null) {
+      actions.push({
+        type: match[1],
+        params: match[2].split('|'),
+      });
+    }
+    
+    // Remove action blocks from visible content
+    const cleanContent = content.replace(actionRegex, '').trim();
+    
+    return { cleanContent, actions };
+  }, []);
 
   const streamChat = useCallback(async (
     messages: Message[],
     onDelta: (delta: string) => void,
-    onDone: () => void
+    onDone: () => void,
+    onActions?: (actions: { type: string; params: string[] }[]) => void
   ) => {
     setIsLoading(true);
     setError(null);
@@ -94,6 +153,7 @@ export function useAIChat() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = '';
+      let fullContent = '';
       let streamDone = false;
 
       while (!streamDone) {
@@ -120,9 +180,19 @@ export function useAIChat() {
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) onDelta(content);
+            if (content) {
+              // Strip markdown and action blocks from display
+              const cleanChunk = content
+                .replace(/\*\*/g, '')
+                .replace(/\*/g, '')
+                .replace(/^#+\s/gm, '')
+                .replace(/`/g, '')
+                .replace(/\[ACTION:[^\]]+\]/g, '');
+              
+              fullContent += content;
+              if (cleanChunk) onDelta(cleanChunk);
+            }
           } catch {
-            // Incomplete JSON, put it back and wait for more
             textBuffer = line + '\n' + textBuffer;
             break;
           }
@@ -141,9 +211,19 @@ export function useAIChat() {
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) onDelta(content);
+            if (content) {
+              fullContent += content;
+              const cleanChunk = content.replace(/\[ACTION:[^\]]+\]/g, '');
+              if (cleanChunk) onDelta(cleanChunk);
+            }
           } catch { /* ignore partial leftovers */ }
         }
+      }
+
+      // Parse and execute any AI actions
+      const { actions } = parseAIActions(fullContent);
+      if (actions.length > 0 && onActions) {
+        onActions(actions);
       }
 
       setIsLoading(false);
@@ -154,7 +234,7 @@ export function useAIChat() {
       setIsLoading(false);
       onDone();
     }
-  }, [getContext]);
+  }, [getContext, parseAIActions]);
 
   return {
     streamChat,
