@@ -267,17 +267,18 @@ export function AssistantView() {
         </ScrollArea>
 
         {/* Quick Prompts */}
-        <div className="px-4 py-2 border-t border-border/30">
+        <div className="px-4 py-3 border-t border-border/30">
+          <p className="text-xs text-muted-foreground mb-2">Quick actions:</p>
           <div className="flex gap-2 flex-wrap">
             {quickPrompts.map((prompt) => (
               <button 
                 key={prompt.text} 
                 onClick={() => handleQuickPrompt(prompt.text)} 
                 disabled={isLoading} 
-                className="px-3 py-1.5 text-xs rounded-full bg-muted/20 hover:bg-primary/20 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-4 py-2 text-sm rounded-lg bg-muted/20 hover:bg-primary/20 hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
               >
                 {isLoading ? (
-                  <span className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 ) : (
                   prompt.icon
                 )}
@@ -289,32 +290,54 @@ export function AssistantView() {
 
         {/* Input Area */}
         <div className="p-4 border-t border-border/30">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
             <Button
               variant={isRecording ? "destructive" : "outline"}
               size="icon"
               onClick={toggleRecording}
               className={cn(
-                "shrink-0 transition-all",
+                "shrink-0 transition-all h-11 w-11",
                 isRecording && "animate-pulse"
               )}
               aria-label={isRecording ? "Stop recording" : "Start voice input"}
             >
-              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </Button>
-            <Input 
+            <textarea 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               placeholder={isRecording ? "Listening..." : "Ask me to organize tasks, create goals, or plan your week..."} 
-              className={cn("flex-1 bg-muted/10", isRecording && "border-destructive")}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} 
+              className={cn(
+                "flex-1 bg-muted/10 rounded-lg border border-border px-4 py-3 text-sm resize-none min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                isRecording && "border-destructive"
+              )}
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+              }}
               disabled={isLoading} 
             />
-            <Button onClick={handleSend} disabled={!input.trim() || isLoading} className="glow-cyan">
+            <Button 
+              onClick={handleSend} 
+              disabled={!input.trim() || isLoading} 
+              className={cn(
+                "glow-cyan h-11 w-11 shrink-0",
+                !input.trim() && "opacity-50"
+              )}
+              aria-label="Send message"
+            >
               {isLoading ? (
-                <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               )}
             </Button>
           </div>
