@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Plus, Trash2, Target, ChevronDown } from "lucide-react";
+import { EditGoalDialog } from "@/components/ui/edit-goal-dialog";
+import { Plus, Trash2, Target, ChevronDown, Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +34,7 @@ import { Goal } from "@/types";
 import { toast } from "sonner";
 
 export function GoalsView() {
-  const { goals, addGoal, deleteGoal, toggleMilestone } = useAppStore();
+  const { goals, addGoal, updateGoal, deleteGoal, toggleMilestone } = useAppStore();
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: "",
@@ -47,6 +48,7 @@ export function GoalsView() {
     goalId: "",
     goalTitle: "",
   });
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   const handleAddGoal = () => {
     if (newGoal.title.trim()) {
@@ -212,6 +214,7 @@ export function GoalsView() {
           setExpandedGoal={setExpandedGoal}
           toggleMilestone={toggleMilestone}
           onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
+          onEditGoal={(goal) => setEditingGoal(goal)}
         />
 
         {/* Medium Term */}
@@ -224,6 +227,7 @@ export function GoalsView() {
           setExpandedGoal={setExpandedGoal}
           toggleMilestone={toggleMilestone}
           onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
+          onEditGoal={(goal) => setEditingGoal(goal)}
         />
 
         {/* Custom */}
@@ -236,6 +240,7 @@ export function GoalsView() {
           setExpandedGoal={setExpandedGoal}
           toggleMilestone={toggleMilestone}
           onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
+          onEditGoal={(goal) => setEditingGoal(goal)}
         />
       </div>
 
@@ -264,6 +269,19 @@ export function GoalsView() {
         confirmLabel="Delete Goal"
         onConfirm={handleDeleteGoal}
       />
+
+      {/* Edit Goal Dialog */}
+      <EditGoalDialog
+        goal={editingGoal}
+        open={!!editingGoal}
+        onOpenChange={(open) => !open && setEditingGoal(null)}
+        onSave={(updates) => {
+          if (editingGoal) {
+            updateGoal(editingGoal.id, updates);
+            toast.success("Goal updated");
+          }
+        }}
+      />
     </div>
   );
 }
@@ -277,6 +295,7 @@ function GoalSection({
   setExpandedGoal,
   toggleMilestone,
   onDeleteGoal,
+  onEditGoal,
 }: {
   title: string;
   subtitle: string;
@@ -286,6 +305,7 @@ function GoalSection({
   setExpandedGoal: (id: string | null) => void;
   toggleMilestone: (goalId: string, milestoneId: string) => void;
   onDeleteGoal: (id: string, title: string) => void;
+  onEditGoal: (goal: Goal) => void;
 }) {
   if (goals.length === 0) return null;
 
@@ -341,22 +361,40 @@ function GoalSection({
                         </p>
                       )}
                     </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onDeleteGoal(goal.id, goal.title)}
-                            className="text-destructive hover:text-destructive h-8 w-8"
-                            aria-label="Delete goal"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete goal</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex gap-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEditGoal(goal)}
+                              className="text-muted-foreground hover:text-foreground h-8 w-8"
+                              aria-label="Edit goal"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit goal</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onDeleteGoal(goal.id, goal.title)}
+                              className="text-destructive hover:text-destructive h-8 w-8"
+                              aria-label="Delete goal"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete goal</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
 
                   {/* Milestones Toggle */}

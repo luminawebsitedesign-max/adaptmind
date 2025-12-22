@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
+import adaptmindLogo from "@/assets/adaptmind-logo.png";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -13,7 +14,6 @@ import {
   LogOut,
   User,
   Calendar,
-  Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ViewType } from "@/types";
@@ -56,10 +56,14 @@ export function Sidebar() {
       {/* Logo */}
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-accent to-secondary flex items-center justify-center glow-cyan relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent" />
-            <Brain className="w-5 h-5 text-primary-foreground relative z-10" />
-          </div>
+          <img 
+            src={adaptmindLogo} 
+            alt="Adaptmind" 
+            className={cn(
+              "object-contain transition-all duration-300",
+              sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"
+            )}
+          />
           {!sidebarCollapsed && (
             <div className="flex flex-col">
               <span className="font-display text-xl font-bold text-gradient-cyan leading-tight">

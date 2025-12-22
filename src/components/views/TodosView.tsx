@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EditTaskDialog } from "@/components/ui/edit-task-dialog";
 import {
   Plus,
   Trash2,
@@ -13,6 +14,7 @@ import {
   ChevronDown,
   ChevronRight,
   Send,
+  Pencil,
 } from "lucide-react";
 import {
   Dialog,
@@ -73,6 +75,9 @@ export function TodosView() {
     itemId: "",
     itemTitle: "",
   });
+  
+  // Edit task state
+  const [editingTask, setEditingTask] = useState<{ task: TodoItem; listId: string } | null>(null);
 
   const toggleList = (id: string) => {
     setExpandedLists((prev) =>
@@ -269,6 +274,7 @@ export function TodosView() {
                         itemId: item.id, 
                         itemTitle: item.title 
                       })}
+                      onEdit={() => setEditingTask({ task: item, listId: list.id })}
                       priorityColors={priorityColors}
                     />
                   ))
@@ -374,6 +380,19 @@ export function TodosView() {
         confirmLabel="Delete Task"
         onConfirm={handleDeleteItem}
       />
+
+      {/* Edit Task Dialog */}
+      <EditTaskDialog
+        task={editingTask?.task || null}
+        open={!!editingTask}
+        onOpenChange={(open) => !open && setEditingTask(null)}
+        onSave={(updates) => {
+          if (editingTask) {
+            updateTodoItem(editingTask.listId, editingTask.task.id, updates);
+            toast.success("Task updated");
+          }
+        }}
+      />
     </div>
   );
 }
@@ -383,12 +402,14 @@ function TaskItem({
   listId,
   onToggle,
   onDelete,
+  onEdit,
   priorityColors,
 }: {
   item: TodoItem;
   listId: string;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: () => void;
   priorityColors: Record<string, string>;
 }) {
   return (
@@ -444,6 +465,22 @@ function TaskItem({
           {item.priority}
         </span>
 
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onEdit}
+                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground h-8 w-8 transition-opacity"
+                aria-label="Edit task"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit task</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
