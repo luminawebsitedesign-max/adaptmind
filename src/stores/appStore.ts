@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { TodoList, TodoItem, Goal, Habit, ChatMessage, ViewType } from '@/types';
+import { TodoList, TodoItem, Goal, Habit, ChatMessage, ViewType, Portfolio, Transaction, FinanceGoal } from '@/types';
 
 interface AppState {
   currentView: ViewType;
@@ -38,6 +38,19 @@ interface AppState {
   // Sidebar
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
+
+  // Finance
+  portfolios: Portfolio[];
+  transactions: Transaction[];
+  financeGoals: FinanceGoal[];
+  addPortfolio: (portfolio: Omit<Portfolio, 'id' | 'createdAt'>) => void;
+  updatePortfolio: (id: string, updates: Partial<Portfolio>) => void;
+  deletePortfolio: (id: string) => void;
+  addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt'>) => void;
+  deleteTransaction: (id: string) => void;
+  addFinanceGoal: (goal: Omit<FinanceGoal, 'id' | 'createdAt'>) => void;
+  updateFinanceGoal: (id: string, updates: Partial<FinanceGoal>) => void;
+  deleteFinanceGoal: (id: string) => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
@@ -56,8 +69,8 @@ export const useAppStore = create<AppState>()(
           icon: '💼',
           color: 'cyan',
           items: [
-            { id: '1', title: 'Complete project proposal', description: 'Finish the Q1 project proposal', deadline: new Date(Date.now() + 86400000 * 2), priority: 'high', completed: false, progress: 60, listId: '1', order: 0 },
-            { id: '2', title: 'Review team updates', priority: 'medium', completed: true, progress: 100, listId: '1', order: 1 },
+            { id: '1', title: 'Complete project proposal', description: 'Finish the Q1 project proposal', deadline: new Date(Date.now() + 86400000 * 2), priority: 'high', completed: false, progress: 60, listId: '1', order: 0, createdAt: new Date() },
+            { id: '2', title: 'Review team updates', priority: 'medium', completed: true, progress: 100, listId: '1', order: 1, createdAt: new Date(), completedAt: new Date() },
           ]
         },
         {
@@ -66,7 +79,7 @@ export const useAppStore = create<AppState>()(
           icon: '🏠',
           color: 'magenta',
           items: [
-            { id: '3', title: 'Morning meditation', priority: 'low', completed: false, progress: 0, listId: '2', order: 0 },
+            { id: '3', title: 'Morning meditation', priority: 'low', completed: false, progress: 0, listId: '2', order: 0, createdAt: new Date() },
           ]
         },
         {
@@ -89,7 +102,7 @@ export const useAppStore = create<AppState>()(
       addTodoItem: (listId, item) => set((state) => ({
         todoLists: state.todoLists.map(list => 
           list.id === listId 
-            ? { ...list, items: [...list.items, { ...item, id: generateId(), order: list.items.length }] }
+            ? { ...list, items: [...list.items, { ...item, id: generateId(), order: list.items.length, createdAt: new Date() }] }
             : list
         )
       })),
@@ -97,7 +110,20 @@ export const useAppStore = create<AppState>()(
       updateTodoItem: (listId, itemId, updates) => set((state) => ({
         todoLists: state.todoLists.map(list =>
           list.id === listId
-            ? { ...list, items: list.items.map(item => item.id === itemId ? { ...item, ...updates } : item) }
+            ? { 
+                ...list, 
+                items: list.items.map(item => {
+                  if (item.id !== itemId) return item;
+                  const newItem = { ...item, ...updates };
+                  // Track completion time
+                  if (updates.completed && !item.completed) {
+                    newItem.completedAt = new Date();
+                  } else if (updates.completed === false) {
+                    newItem.completedAt = undefined;
+                  }
+                  return newItem;
+                })
+              }
             : list
         )
       })),
@@ -143,8 +169,8 @@ export const useAppStore = create<AppState>()(
           category: 'short',
           progress: 75,
           milestones: [
-            { id: '1', title: 'Define color palette', completed: true },
-            { id: '2', title: 'Create component library', completed: true },
+            { id: '1', title: 'Define color palette', completed: true, completedAt: new Date() },
+            { id: '2', title: 'Create component library', completed: true, completedAt: new Date() },
             { id: '3', title: 'Write documentation', completed: false },
           ],
           createdAt: new Date()
@@ -155,7 +181,7 @@ export const useAppStore = create<AppState>()(
           category: 'medium',
           progress: 40,
           milestones: [
-            { id: '1', title: 'Generics', completed: true },
+            { id: '1', title: 'Generics', completed: true, completedAt: new Date() },
             { id: '2', title: 'Utility types', completed: false },
             { id: '3', title: 'Decorators', completed: false },
           ],
@@ -178,11 +204,17 @@ export const useAppStore = create<AppState>()(
       toggleMilestone: (goalId, milestoneId) => set((state) => ({
         goals: state.goals.map(goal => {
           if (goal.id !== goalId) return goal;
-          const milestones = goal.milestones.map(m => 
-            m.id === milestoneId ? { ...m, completed: !m.completed } : m
-          );
+          const milestones = goal.milestones.map(m => {
+            if (m.id !== milestoneId) return m;
+            return { 
+              ...m, 
+              completed: !m.completed,
+              completedAt: !m.completed ? new Date() : undefined
+            };
+          });
           const progress = Math.round((milestones.filter(m => m.completed).length / milestones.length) * 100);
-          return { ...goal, milestones, progress };
+          const completedAt = progress === 100 ? new Date() : undefined;
+          return { ...goal, milestones, progress, completedAt };
         })
       })),
       
@@ -272,6 +304,71 @@ export const useAppStore = create<AppState>()(
       // Sidebar
       sidebarCollapsed: false,
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+
+      // Finance
+      portfolios: [],
+      transactions: [],
+      financeGoals: [],
+
+      addPortfolio: (portfolio) => set((state) => {
+        const newPortfolio = { ...portfolio, id: generateId(), createdAt: new Date() };
+        return { portfolios: [...state.portfolios, newPortfolio] };
+      }),
+
+      updatePortfolio: (id, updates) => set((state) => ({
+        portfolios: state.portfolios.map(p => p.id === id ? { ...p, ...updates } : p)
+      })),
+
+      deletePortfolio: (id) => set((state) => ({
+        portfolios: state.portfolios.filter(p => p.id !== id),
+        transactions: state.transactions.filter(t => t.portfolioId !== id),
+        financeGoals: state.financeGoals.filter(g => g.portfolioId !== id),
+      })),
+
+      addTransaction: (transaction) => set((state) => {
+        const newTransaction = { ...transaction, id: generateId(), createdAt: new Date() };
+        // Update portfolio balance
+        const portfolios = state.portfolios.map(p => {
+          if (p.id !== transaction.portfolioId) return p;
+          let newBalance = p.balance;
+          if (transaction.type === 'income') newBalance += transaction.amount;
+          else if (transaction.type === 'expense') newBalance -= transaction.amount;
+          return { ...p, balance: newBalance };
+        });
+        return { 
+          transactions: [...state.transactions, newTransaction],
+          portfolios
+        };
+      }),
+
+      deleteTransaction: (id) => set((state) => {
+        const tx = state.transactions.find(t => t.id === id);
+        if (!tx) return state;
+        // Reverse the transaction on portfolio balance
+        const portfolios = state.portfolios.map(p => {
+          if (p.id !== tx.portfolioId) return p;
+          let newBalance = p.balance;
+          if (tx.type === 'income') newBalance -= tx.amount;
+          else if (tx.type === 'expense') newBalance += tx.amount;
+          return { ...p, balance: newBalance };
+        });
+        return {
+          transactions: state.transactions.filter(t => t.id !== id),
+          portfolios
+        };
+      }),
+
+      addFinanceGoal: (goal) => set((state) => ({
+        financeGoals: [...state.financeGoals, { ...goal, id: generateId(), createdAt: new Date() }]
+      })),
+
+      updateFinanceGoal: (id, updates) => set((state) => ({
+        financeGoals: state.financeGoals.map(g => g.id === id ? { ...g, ...updates } : g)
+      })),
+
+      deleteFinanceGoal: (id) => set((state) => ({
+        financeGoals: state.financeGoals.filter(g => g.id !== id)
+      })),
     }),
     {
       name: 'adaptmind-storage',

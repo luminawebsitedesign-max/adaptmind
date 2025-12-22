@@ -13,6 +13,7 @@ import { AssistantView } from "@/components/views/AssistantView";
 import { CalendarView } from "@/components/views/CalendarView";
 import { ProfileView } from "@/components/views/ProfileView";
 import { ExportDataView } from "@/components/views/ExportDataView";
+import { FinanceView } from "@/components/views/FinanceView";
 
 const Index = () => {
   const { currentView, sidebarCollapsed } = useAppStore();
@@ -31,6 +32,8 @@ const Index = () => {
         return <GoalsView />;
       case "habits":
         return <HabitsView />;
+      case "finance":
+        return <FinanceView />;
       case "assistant":
         return <AssistantView />;
       case "calendar":

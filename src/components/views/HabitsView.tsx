@@ -170,8 +170,15 @@ export function HabitsView() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleAddHabit} className="w-full" disabled={!newHabit.name.trim()}>
-                Create Habit
+              <Button 
+                onClick={handleAddHabit} 
+                className={cn(
+                  "w-full transition-all",
+                  !newHabit.name.trim() && "opacity-50 cursor-not-allowed"
+                )}
+                disabled={!newHabit.name.trim()}
+              >
+                {newHabit.name.trim() ? "Create Habit" : "Enter a name to continue"}
               </Button>
             </div>
           </DialogContent>

@@ -248,8 +248,15 @@ export function TodosView() {
                   />
                 </div>
               </div>
-              <Button onClick={handleAddList} className="w-full" disabled={!newListName.trim()}>
-                Create List
+              <Button 
+                onClick={handleAddList} 
+                className={cn(
+                  "w-full transition-all",
+                  !newListName.trim() && "opacity-50 cursor-not-allowed"
+                )}
+                disabled={!newListName.trim()}
+              >
+                {newListName.trim() ? "Create List" : "Enter a name to continue"}
               </Button>
             </div>
           </DialogContent>

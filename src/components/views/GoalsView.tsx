@@ -194,8 +194,15 @@ export function GoalsView() {
                 </Button>
               </div>
 
-              <Button onClick={handleAddGoal} className="w-full" disabled={!newGoal.title.trim()}>
-                Create Goal
+              <Button 
+                onClick={handleAddGoal} 
+                className={cn(
+                  "w-full transition-all",
+                  !newGoal.title.trim() && "opacity-50 cursor-not-allowed"
+                )} 
+                disabled={!newGoal.title.trim()}
+              >
+                {newGoal.title.trim() ? "Create Goal" : "Enter a title to continue"}
               </Button>
             </div>
           </DialogContent>
@@ -415,13 +422,23 @@ function GoalSection({
                         {completedMilestones}/{totalMilestones} milestones
                       </button>
 
-                      {/* Milestones */}
-                      {expandedGoal === goal.id && (
-                        <div className="mt-3 space-y-2 animate-fade-in">
+                      {/* Milestones with smooth expand/collapse */}
+                      <div
+                        className={cn(
+                          "overflow-hidden transition-all duration-300 ease-in-out",
+                          expandedGoal === goal.id ? "max-h-96 opacity-100 mt-3" : "max-h-0 opacity-0"
+                        )}
+                      >
+                        <div className="space-y-2">
                           {goal.milestones.map((milestone) => (
                             <div
                               key={milestone.id}
-                              className="flex items-center gap-2"
+                              className={cn(
+                                "flex items-center gap-2 p-2 rounded-lg transition-all duration-200",
+                                milestone.completed 
+                                  ? "bg-primary/10" 
+                                  : "bg-muted/10 hover:bg-muted/20"
+                              )}
                             >
                               <Checkbox
                                 checked={milestone.completed}
@@ -432,17 +449,21 @@ function GoalSection({
                               />
                               <span
                                 className={cn(
-                                  "text-sm transition-all",
-                                  milestone.completed &&
-                                    "line-through text-muted-foreground"
+                                  "text-sm font-medium transition-all",
+                                  milestone.completed 
+                                    ? "text-primary" 
+                                    : "text-foreground"
                                 )}
                               >
                                 {milestone.title}
                               </span>
+                              {milestone.completed && (
+                                <span className="ml-auto text-xs text-primary">✓ Done</span>
+                              )}
                             </div>
                           ))}
                         </div>
-                      )}
+                      </div>
                     </>
                   )}
                 </div>

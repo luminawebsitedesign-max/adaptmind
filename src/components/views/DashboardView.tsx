@@ -215,7 +215,14 @@ export function DashboardView() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-lg">This Week</h3>
+            <h3 className="font-semibold text-lg">
+              {isSameDay(weekStart, startOfWeek(new Date(), { weekStartsOn: 1 })) 
+                ? "This Week" 
+                : format(weekStart, "MMM d") + " - " + format(addDays(weekStart, 6), "MMM d")}
+            </h3>
+            {isSameDay(weekStart, startOfWeek(new Date(), { weekStartsOn: 1 })) && (
+              <span className="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary font-medium">Current</span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(subWeeks(weekStart, 1))}>
