@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
+import adaptmindLogo from '@/assets/adaptmind-logo.png';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -93,9 +94,11 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent glow-cyan mb-4">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img 
+            src={adaptmindLogo} 
+            alt="Adaptmind" 
+            className="w-20 h-20 mx-auto mb-4 object-contain"
+          />
           <h1 className="text-3xl font-display font-bold text-gradient-cyan">
             Adaptmind
           </h1>

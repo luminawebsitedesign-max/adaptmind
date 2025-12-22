@@ -1,11 +1,14 @@
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { CheckSquare, Target, Repeat, TrendingUp, Sparkles, Calendar, Zap, ArrowRight } from "lucide-react";
+import { CheckSquare, Target, Repeat, TrendingUp, Sparkles, Calendar, Zap, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks } from "date-fns";
+import { useState, useMemo } from "react";
 
 export function DashboardView() {
   const { todoLists, goals, habits, setCurrentView } = useAppStore();
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
 
   const totalTasks = todoLists.reduce((acc, list) => acc + list.items.length, 0);
   const completedTasks = todoLists.reduce(
@@ -35,6 +38,18 @@ export function DashboardView() {
 
   const hasData = totalTasks > 0 || goals.length > 0 || habits.length > 0;
 
+  // Mini calendar week data
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = addDays(weekStart, i);
+      const dateStr = format(day, "yyyy-MM-dd");
+      const tasksOnDay = todoLists.flatMap(l => l.items).filter(t => t.deadline && format(new Date(t.deadline), "yyyy-MM-dd") === dateStr);
+      const habitsOnDay = habits.filter(h => h.completedDates.includes(dateStr));
+      const goalsOnDay = goals.filter(g => g.deadline && format(new Date(g.deadline), "yyyy-MM-dd") === dateStr);
+      return { day, dateStr, tasksOnDay, habitsOnDay, goalsOnDay, isToday: isSameDay(day, new Date()) };
+    });
+  }, [weekStart, todoLists, habits, goals]);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -47,15 +62,19 @@ export function DashboardView() {
             Here's your productivity overview for today
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">
+        <button 
+          onClick={() => setCurrentView("calendar")}
+          className="text-right hover:bg-muted/20 p-2 rounded-lg transition-colors group"
+        >
+          <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
               day: "numeric",
             })}
           </p>
-        </div>
+          <p className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Calendar →</p>
+        </button>
       </div>
 
       {/* Main Stats Grid */}
@@ -190,6 +209,55 @@ export function DashboardView() {
           </div>
         </div>
       )}
+
+      {/* Mini Calendar Week Widget */}
+      <div className="glass rounded-2xl p-6 hover-glow transition-all duration-300">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-lg">This Week</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(subWeeks(weekStart, 1))}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground min-w-[140px] text-center">
+              {format(weekStart, "MMM d")} - {format(addDays(weekStart, 6), "MMM d")}
+            </span>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {weekDays.map(({ day, tasksOnDay, habitsOnDay, goalsOnDay, isToday }) => (
+            <button
+              key={day.toISOString()}
+              onClick={() => setCurrentView("calendar")}
+              className={cn(
+                "flex flex-col items-center p-2 rounded-lg transition-all hover:bg-muted/20",
+                isToday && "bg-primary/20 ring-1 ring-primary"
+              )}
+            >
+              <span className="text-xs text-muted-foreground">{format(day, "EEE")}</span>
+              <span className={cn("text-lg font-semibold", isToday && "text-primary")}>{format(day, "d")}</span>
+              <div className="flex gap-0.5 mt-1">
+                {tasksOnDay.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                {habitsOnDay.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
+                {goalsOnDay.length > 0 && <div className="w-1.5 h-1.5 rounded-full bg-secondary" />}
+              </div>
+            </button>
+          ))}
+        </div>
+        <Button 
+          variant="ghost" 
+          className="w-full mt-4 text-muted-foreground hover:text-primary" 
+          onClick={() => setCurrentView("calendar")}
+        >
+          Open Full Calendar
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
 
       {/* Upcoming Tasks */}
       {upcomingTasks.length > 0 && (
