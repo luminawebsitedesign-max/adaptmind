@@ -4,7 +4,8 @@ import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Plus, Trash2, Flame, TrendingUp, Check } from "lucide-react";
+import { EditHabitDialog } from "@/components/ui/edit-habit-dialog";
+import { Plus, Trash2, Flame, TrendingUp, Check, Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,7 @@ import { Habit } from "@/types";
 import { toast } from "sonner";
 
 export function HabitsView() {
-  const { habits, addHabit, deleteHabit, toggleHabitCompletion } = useAppStore();
+  const { habits, addHabit, updateHabit, deleteHabit, toggleHabitCompletion } = useAppStore();
   const [isAddingHabit, setIsAddingHabit] = useState(false);
   const [newHabit, setNewHabit] = useState({
     name: "",
@@ -42,6 +43,7 @@ export function HabitsView() {
     habitId: "",
     habitName: "",
   });
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
   const handleAddHabit = () => {
     if (newHabit.name.trim()) {
@@ -302,7 +304,23 @@ export function HabitsView() {
               </Tooltip>
             </TooltipProvider>
 
-            <div className="w-16 p-4">
+            <div className="w-16 p-4 flex gap-1">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingHabit(habit)}
+                      className="text-muted-foreground hover:text-foreground h-8 w-8"
+                      aria-label="Edit habit"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit habit</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -387,6 +405,19 @@ export function HabitsView() {
         description={`Are you sure you want to delete "${deleteConfirm.habitName}"? Your streak and history will be lost. This action cannot be undone.`}
         confirmLabel="Delete Habit"
         onConfirm={handleDeleteHabit}
+      />
+
+      {/* Edit Habit Dialog */}
+      <EditHabitDialog
+        habit={editingHabit}
+        open={!!editingHabit}
+        onOpenChange={(open) => !open && setEditingHabit(null)}
+        onSave={(updates) => {
+          if (editingHabit) {
+            updateHabit(editingHabit.id, updates);
+            toast.success("Habit updated");
+          }
+        }}
       />
     </div>
   );
