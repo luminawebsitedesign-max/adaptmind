@@ -82,18 +82,18 @@ export function CalendarView() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 glass rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">
+        <div className="lg:col-span-3 glass rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleNextMonth}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth}>
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
@@ -117,55 +117,56 @@ export function CalendarView() {
                 borderBottom: "2px solid hsl(var(--secondary))",
               },
             }}
-            className="w-full"
+            className="w-full [&_.rdp-months]:justify-center [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-button]:w-full [&_.rdp-table]:w-full"
           />
           
-          <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 border-b-2 border-primary" />
-              <span>Task due</span>
+          <div className="flex items-center justify-center gap-6 mt-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+              <span>Task</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-accent/30 rounded" />
-              <span>Habit completed</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+              <span>Habit</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 border-b-2 border-secondary" />
-              <span>Goal deadline</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
+              <span>Goal</span>
             </div>
           </div>
         </div>
 
         {/* Day Details */}
-        <div className="glass rounded-2xl p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {format(selectedDate, "EEEE, MMMM d")}
+        <div className="lg:col-span-2 glass rounded-2xl p-4">
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-primary" />
+            {format(selectedDate, "EEEE, MMM d")}
           </h3>
           
-          <ScrollArea className="h-[400px]">
-            <div className="space-y-4">
+          <ScrollArea className="h-[350px]">
+            <div className="space-y-3 pr-2">
               {/* Tasks */}
               {tasksDueOnDate.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     Tasks Due
                   </div>
                   {tasksDueOnDate.map(task => (
                     <div 
                       key={task.id} 
                       className={cn(
-                        "p-3 rounded-lg bg-muted/20 border-l-2",
+                        "p-2.5 rounded-lg bg-muted/20 border-l-2",
                         task.completed ? "border-primary/50 opacity-60" : "border-primary"
                       )}
                     >
                       <div className="flex items-center gap-2">
-                        <span>{task.listIcon}</span>
-                        <span className={cn("font-medium", task.completed && "line-through")}>
+                        <span className="text-sm">{task.listIcon}</span>
+                        <span className={cn("text-sm font-medium", task.completed && "line-through")}>
                           {task.title}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-0.5 ml-6">
                         {task.listName}
                       </div>
                     </div>
@@ -176,13 +177,13 @@ export function CalendarView() {
               {/* Goals */}
               {goalsWithDeadlines.filter(g => g.dueOnDate).map(goal => (
                 <div key={goal.id} className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Target className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    <Target className="w-3.5 h-3.5" />
                     Goal Deadline
                   </div>
-                  <div className="p-3 rounded-lg bg-secondary/10 border-l-2 border-secondary">
-                    <div className="font-medium">{goal.title}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                  <div className="p-2.5 rounded-lg bg-secondary/10 border-l-2 border-secondary">
+                    <div className="text-sm font-medium">{goal.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       {goal.progress}% complete
                     </div>
                   </div>
@@ -190,31 +191,33 @@ export function CalendarView() {
               ))}
 
               {/* Habits */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Repeat className="w-4 h-4" />
-                  Habits
-                </div>
-                {habitsOnDate.map(habit => (
-                  <div 
-                    key={habit.id} 
-                    className={cn(
-                      "p-3 rounded-lg border-l-2 flex items-center justify-between",
-                      habit.completedOnDate 
-                        ? "bg-accent/20 border-accent" 
-                        : "bg-muted/20 border-muted-foreground/30"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{habit.icon}</span>
-                      <span className="font-medium">{habit.name}</span>
-                    </div>
-                    <Badge variant={habit.completedOnDate ? "default" : "outline"}>
-                      {habit.completedOnDate ? "Done" : "Pending"}
-                    </Badge>
+              {habitsOnDate.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    <Repeat className="w-3.5 h-3.5" />
+                    Habits
                   </div>
-                ))}
-              </div>
+                  {habitsOnDate.map(habit => (
+                    <div 
+                      key={habit.id} 
+                      className={cn(
+                        "p-2.5 rounded-lg border-l-2 flex items-center justify-between",
+                        habit.completedOnDate 
+                          ? "bg-accent/20 border-accent" 
+                          : "bg-muted/20 border-muted-foreground/30"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{habit.icon}</span>
+                        <span className="text-sm font-medium">{habit.name}</span>
+                      </div>
+                      <Badge variant={habit.completedOnDate ? "default" : "outline"} className="text-xs">
+                        {habit.completedOnDate ? "Done" : "Pending"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Empty state */}
               {tasksDueOnDate.length === 0 && 
@@ -222,7 +225,8 @@ export function CalendarView() {
                habitsOnDate.every(h => !h.completedOnDate) && (
                 <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>No events on this day</p>
+                  <p className="text-sm">No events on this day</p>
+                  <p className="text-xs mt-1">Add tasks, goals, or habits to see them here</p>
                 </div>
               )}
             </div>
