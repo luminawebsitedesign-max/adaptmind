@@ -56,6 +56,12 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			brand: {
+  				primary: 'hsl(var(--brand-primary))',
+  				dark: 'hsl(var(--brand-dark))',
+  				darker: 'hsl(var(--brand-darker))',
+  				glow: 'hsl(var(--brand-glow))'
   			}
   		},
 		borderRadius: {
@@ -87,6 +93,10 @@ export default {
 			'shimmer': {
 				'0%': { backgroundPosition: '-200% 0' },
 				'100%': { backgroundPosition: '200% 0' }
+			},
+			'pulse-glow': {
+				'0%, 100%': { boxShadow: '0 0 20px hsl(84 100% 72% / 0.3)' },
+				'50%': { boxShadow: '0 0 40px hsl(84 100% 72% / 0.5)' }
 			}
 		},
 		animation: {
@@ -95,11 +105,13 @@ export default {
 			'fade-in': 'fade-in 0.5s ease-out',
 			'slide-in': 'slide-in 0.3s ease-out',
 			'scale-in': 'scale-in 0.2s ease-out',
-			'shimmer': 'shimmer 2s infinite'
+			'shimmer': 'shimmer 2s infinite',
+			'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
 		},
 		fontFamily: {
-			sans: ['Exo 2', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-			display: ['Orbitron', 'Exo 2', 'sans-serif']
+			sans: ['Lexend Deca', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+			display: ['Codec Pro', 'Lexend Deca', 'sans-serif'],
+			accent: ['Horizon', 'Lexend Deca', 'sans-serif']
 		}
 	}
   },

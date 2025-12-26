@@ -2,8 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
-import adaptmindLogo from "@/assets/adaptmind-logo.png";
-import adaptmindWordmark from "@/assets/adaptmind-wordmark.png";
+import adaptmindIconLight from "@/assets/adaptmind-icon-light.png";
+import adaptmindTextLight from "@/assets/adaptmind-text-light.png";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -63,7 +63,7 @@ export function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="fixed top-4 left-4 z-[60] md:hidden w-10 h-10 rounded-lg glass-strong flex items-center justify-center"
+        className="fixed top-4 left-4 z-[60] md:hidden w-10 h-10 rounded-lg glass-strong flex items-center justify-center text-foreground hover:text-primary transition-colors"
         aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
       >
         {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -92,18 +92,18 @@ export function Sidebar() {
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center gap-3">
           <img 
-            src={adaptmindLogo} 
-            alt="Adaptmind" 
+            src={adaptmindIconLight} 
+            alt="AdaptMind" 
             className={cn(
-              "object-contain transition-all duration-300 drop-shadow-lg",
-              sidebarCollapsed ? "w-10 h-10" : "w-11 h-11"
+              "object-contain transition-all duration-300",
+              sidebarCollapsed ? "w-8 h-8" : "w-10 h-10"
             )}
           />
           {!sidebarCollapsed && (
             <div className="flex flex-col gap-1">
               <img 
-                src={adaptmindWordmark} 
-                alt="Adaptmind" 
+                src={adaptmindTextLight} 
+                alt="AdaptMind" 
                 className="h-5 object-contain object-left"
               />
               <span className="text-[10px] text-muted-foreground/70 tracking-wider uppercase">AI Productivity</span>
@@ -122,16 +122,23 @@ export function Sidebar() {
                   onClick={() => handleNavClick(item.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
-                    "hover:bg-primary/10 hover-glow",
+                    "hover:bg-primary/10",
                     currentView === item.id
-                      ? "bg-primary/20 text-primary neon-border"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "nav-active font-medium"
+                      : "text-muted-foreground hover:text-foreground",
+                    sidebarCollapsed && "justify-center px-0"
                   )}
                   aria-label={item.label}
+                  aria-current={currentView === item.id ? "page" : undefined}
                 >
-                  {item.icon}
+                  <span className={cn(
+                    "transition-colors",
+                    currentView === item.id && "text-primary"
+                  )}>
+                    {item.icon}
+                  </span>
                   {!sidebarCollapsed && (
-                    <span className="font-medium">{item.label}</span>
+                    <span className="text-sm">{item.label}</span>
                   )}
                 </button>
               </TooltipTrigger>
@@ -145,118 +152,105 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="p-3 border-t border-border/30 space-y-1">
-        {/* Profile */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => handleNavClick('profile')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
-                  currentView === 'profile'
-                    ? "bg-primary/20 text-primary neon-border"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/20"
-                )}
-                aria-label="Profile"
-              >
-                <User className="w-5 h-5" />
-                {!sidebarCollapsed && <span className="font-medium">Profile</span>}
-              </button>
-            </TooltipTrigger>
-            {sidebarCollapsed && (
-              <TooltipContent side="right" className="font-medium">
-                Profile
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Export Data */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => handleNavClick('settings')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
-                  currentView === 'settings'
-                    ? "bg-primary/20 text-primary neon-border"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/20"
-                )}
-                aria-label="Export your data"
-              >
-                <Download className="w-5 h-5" />
-                {!sidebarCollapsed && <span className="font-medium">Export Data</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="font-medium">
-              Download your tasks, goals, habits, and more
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* User Menu */}
+      {/* Bottom Section */}
+      <div className="p-3 border-t border-border/30 space-y-2">
+        {/* Profile Dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
-                "text-muted-foreground hover:text-foreground hover:bg-muted/20"
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start gap-3 px-3 py-3 h-auto text-muted-foreground hover:text-foreground hover:bg-primary/10",
+                      sidebarCollapsed && "justify-center px-0"
+                    )}
+                    aria-label="Open profile menu"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    {!sidebarCollapsed && (
+                      <div className="flex flex-col items-start text-left overflow-hidden">
+                        <span className="text-sm font-medium text-foreground truncate max-w-[140px]">
+                          {displayName}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+                          {user?.email}
+                        </span>
+                      </div>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              {sidebarCollapsed && (
+                <TooltipContent side="right" className="font-medium">
+                  Profile Menu
+                </TooltipContent>
               )}
-              aria-label="User menu"
+            </Tooltip>
+          </TooltipProvider>
+          <DropdownMenuContent align="end" className="w-56 glass-strong border-border/50">
+            <DropdownMenuItem 
+              onClick={() => handleNavClick("profile")}
+              className="cursor-pointer gap-2 hover:bg-primary/10"
             >
-              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary">{displayName.charAt(0).toUpperCase()}</span>
-              </div>
-              {!sidebarCollapsed && (
-                <span className="font-medium truncate">{displayName}</span>
-              )}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuItem className="text-muted-foreground text-sm">
-              {user?.email}
+              <User className="w-4 h-4" />
+              <span>Profile Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} className="text-destructive">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+            <DropdownMenuItem 
+              onClick={() => handleNavClick("export")}
+              className="cursor-pointer gap-2 hover:bg-primary/10"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export Data</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem 
+              onClick={signOut}
+              className="cursor-pointer gap-2 text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Collapse toggle - desktop only */}
-        <div className="hidden md:block pt-2 border-t border-border/20">
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleSidebar}
-                  className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground h-9"
-                  aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                >
-                  {sidebarCollapsed ? (
-                    <ChevronRight className="w-4 h-4" />
-                  ) : (
-                    <>
-                      <ChevronLeft className="w-4 h-4" />
-                      <span className="text-sm">Collapse</span>
-                    </>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="font-medium">
-                {sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        {/* Collapse Button */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSidebar();
+                }}
+                className={cn(
+                  "w-full justify-center text-muted-foreground hover:text-foreground hover:bg-primary/10 hidden md:flex",
+                  sidebarCollapsed ? "px-0" : ""
+                )}
+                aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {sidebarCollapsed ? (
+                  <ChevronRight className="w-4 h-4" />
+                ) : (
+                  <>
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    <span className="text-xs">Collapse Sidebar</span>
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={sidebarCollapsed ? "right" : "top"}>
+              {sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
-    </aside>
+      </aside>
     </>
   );
 }

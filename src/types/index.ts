@@ -90,4 +90,4 @@ export interface FinanceGoal {
   createdAt: Date;
 }
 
-export type ViewType = 'dashboard' | 'todos' | 'goals' | 'habits' | 'assistant' | 'calendar' | 'profile' | 'settings' | 'finance';
+export type ViewType = 'dashboard' | 'todos' | 'goals' | 'habits' | 'assistant' | 'calendar' | 'profile' | 'settings' | 'finance' | 'export';
