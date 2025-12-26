@@ -55,7 +55,7 @@ export function DashboardView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-cyan">
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">
             Welcome Back
           </h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">
@@ -64,9 +64,9 @@ export function DashboardView() {
         </div>
         <button 
           onClick={() => setCurrentView("calendar")}
-          className="text-left sm:text-right hover:bg-muted/20 p-2 rounded-lg transition-colors group"
+          className="text-left sm:text-right hover:bg-primary/10 p-2 rounded-lg transition-colors group border border-transparent hover:border-primary/20"
         >
-          <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
+          <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -82,11 +82,11 @@ export function DashboardView() {
         {/* Tasks Overview */}
         <div
           onClick={() => setCurrentView("todos")}
-          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
+          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-primary/30"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <CheckSquare className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -102,7 +102,7 @@ export function DashboardView() {
             <ProgressRing progress={taskCompletion} size={100} color="cyan" />
           ) : (
             <div className="h-[100px] flex items-center justify-center">
-              <Button variant="outline" size="sm" className="gap-2" onClick={(e) => { e.stopPropagation(); setCurrentView("todos"); }}>
+              <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 hover:border-primary/30" onClick={(e) => { e.stopPropagation(); setCurrentView("todos"); }}>
                 <Zap className="w-4 h-4" />
                 Add your first task
               </Button>
@@ -113,11 +113,11 @@ export function DashboardView() {
         {/* Goals Overview */}
         <div
           onClick={() => setCurrentView("goals")}
-          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
+          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-secondary/30"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-secondary/15 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Target className="w-6 h-6 text-secondary" />
               </div>
               <div>
@@ -133,7 +133,7 @@ export function DashboardView() {
             <ProgressRing progress={avgGoalProgress} size={100} color="magenta" />
           ) : (
             <div className="h-[100px] flex items-center justify-center">
-              <Button variant="outline" size="sm" className="gap-2" onClick={(e) => { e.stopPropagation(); setCurrentView("goals"); }}>
+              <Button variant="outline" size="sm" className="gap-2 hover:bg-secondary/10 hover:border-secondary/30" onClick={(e) => { e.stopPropagation(); setCurrentView("goals"); }}>
                 <Zap className="w-4 h-4" />
                 Set your first goal
               </Button>
@@ -144,11 +144,11 @@ export function DashboardView() {
         {/* Habits Overview */}
         <div
           onClick={() => setCurrentView("habits")}
-          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
+          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-accent/30"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Repeat className="w-6 h-6 text-accent" />
               </div>
               <div>
@@ -164,7 +164,7 @@ export function DashboardView() {
             <ProgressRing progress={habitCompletion} size={100} color="purple" />
           ) : (
             <div className="h-[100px] flex items-center justify-center">
-              <Button variant="outline" size="sm" className="gap-2" onClick={(e) => { e.stopPropagation(); setCurrentView("habits"); }}>
+              <Button variant="outline" size="sm" className="gap-2 hover:bg-accent/10 hover:border-accent/30" onClick={(e) => { e.stopPropagation(); setCurrentView("habits"); }}>
                 <Zap className="w-4 h-4" />
                 Start a habit
               </Button>

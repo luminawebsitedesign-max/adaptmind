@@ -2,8 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
-import adaptmindIconLight from "@/assets/adaptmind-icon-light.png";
-import adaptmindTextLight from "@/assets/adaptmind-text-light.png";
+import adaptmindIconDark from "@/assets/adaptmind-icon-dark.png";
+import adaptmindTextDark from "@/assets/adaptmind-text-dark.png";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -92,21 +92,21 @@ export function Sidebar() {
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center gap-3">
           <img 
-            src={adaptmindIconLight} 
+            src={adaptmindIconDark} 
             alt="AdaptMind" 
             className={cn(
               "object-contain transition-all duration-300",
-              sidebarCollapsed ? "w-8 h-8" : "w-10 h-10"
+              sidebarCollapsed ? "w-8 h-8" : "w-9 h-9"
             )}
           />
           {!sidebarCollapsed && (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <img 
-                src={adaptmindTextLight} 
+                src={adaptmindTextDark} 
                 alt="AdaptMind" 
                 className="h-5 object-contain object-left"
               />
-              <span className="text-[10px] text-muted-foreground/70 tracking-wider uppercase">AI Productivity</span>
+              <span className="text-[10px] text-muted-foreground tracking-wider uppercase">Productivity</span>
             </div>
           )}
         </div>
