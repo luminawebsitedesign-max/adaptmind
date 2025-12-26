@@ -378,7 +378,7 @@ export function TodosView() {
               <p className="text-muted-foreground mb-4">
                 Create your first list to start organizing your tasks
               </p>
-              <Button onClick={() => setIsAddingList(true)} className="gap-2 glow-cyan">
+              <Button onClick={() => setIsAddingList(true)} className="gap-2 glow-primary">
                 <Plus className="w-4 h-4" />
                 Create Your First List
               </Button>
@@ -387,24 +387,24 @@ export function TodosView() {
         </div>
       </DragDropContext>
 
-      {/* Quick Add Bar - Fixed at bottom */}
+      {/* Quick Add Bar - Fixed at bottom, properly centered */}
       {todoLists.length > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 px-4 z-30">
-          <div className="max-w-4xl mx-auto md:ml-64">
+        <div className="fixed bottom-6 left-0 right-0 px-4 z-30 md:left-64">
+          <div className="max-w-4xl mx-auto">
             <div className="glass-strong rounded-2xl p-4 shadow-xl border border-border/30">
-              <div className="flex gap-3 items-center">
+              <div className="flex gap-3 items-center flex-wrap sm:flex-nowrap">
                 <Input
                   value={quickTaskTitle}
                   onChange={(e) => setQuickTaskTitle(e.target.value)}
                   placeholder="Add a new task..."
-                  className="flex-1 bg-muted/10 h-11"
+                  className="flex-1 bg-muted/10 h-11 min-w-[150px]"
                   onKeyDown={(e) => e.key === "Enter" && handleQuickAddTask()}
                 />
                 <Select
                   value={quickTaskListId}
                   onValueChange={setQuickTaskListId}
                 >
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-36">
                     <SelectValue placeholder="Select list" />
                   </SelectTrigger>
                   <SelectContent>
@@ -434,7 +434,7 @@ export function TodosView() {
                 <Button 
                   onClick={handleQuickAddTask} 
                   disabled={!quickTaskTitle.trim() || !quickTaskListId || isAddingQuickTask}
-                  className="glow-cyan h-11 px-6"
+                  className="glow-primary h-11 px-6"
                 >
                   {isAddingQuickTask ? (
                     <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />

@@ -22,18 +22,19 @@ export function ProgressRing({
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
 
+  // Use brand greens only - no purple/blue
   const colorMap = {
     cyan: {
       stroke: 'hsl(var(--primary))',
-      glow: 'hsl(187 100% 50% / 0.5)',
+      glow: 'hsl(84 100% 72% / 0.5)',
     },
     magenta: {
       stroke: 'hsl(var(--secondary))',
-      glow: 'hsl(300 100% 65% / 0.5)',
+      glow: 'hsl(100 64% 59% / 0.5)',
     },
     purple: {
       stroke: 'hsl(var(--accent))',
-      glow: 'hsl(260 100% 65% / 0.5)',
+      glow: 'hsl(151 100% 37% / 0.5)',
     },
   };
 

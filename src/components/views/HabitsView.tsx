@@ -112,7 +112,7 @@ export function HabitsView() {
 
         <Dialog open={isAddingHabit} onOpenChange={setIsAddingHabit}>
           <DialogTrigger asChild>
-            <Button className="gap-2 glow-purple bg-accent hover:bg-accent/90">
+            <Button className="gap-2 glow-primary bg-accent hover:bg-accent/90">
               <Plus className="w-4 h-4" />
               New Habit
             </Button>
@@ -274,7 +274,7 @@ export function HabitsView() {
                       className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
                         isCompleted
-                          ? "bg-primary text-primary-foreground glow-cyan"
+                          ? "bg-primary text-primary-foreground glow-primary"
                           : "bg-muted/20 hover:bg-muted/40"
                       )}
                       aria-label={`Mark ${habit.name} as ${isCompleted ? "incomplete" : "complete"} for ${day.dayName}`}
@@ -357,7 +357,7 @@ export function HabitsView() {
             <p className="text-muted-foreground mb-4">
               Start building your daily routine
             </p>
-            <Button onClick={() => setIsAddingHabit(true)} className="gap-2 glow-purple bg-accent hover:bg-accent/90">
+            <Button onClick={() => setIsAddingHabit(true)} className="gap-2 glow-primary bg-accent hover:bg-accent/90">
               <Plus className="w-4 h-4" />
               Add Your First Habit
             </Button>

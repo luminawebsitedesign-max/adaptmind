@@ -293,37 +293,37 @@ export function FinanceView() {
         </div>
       </div>
 
-      {/* Gamification Banner */}
+      {/* Gamification Banner - Fixed layout to prevent overlap */}
       <div className="glass rounded-2xl p-6 border border-secondary/30">
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <ProgressRing progress={progressToNextLevel} size={100} color="magenta" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <span className="text-2xl font-display font-bold">Lv.{level}</span>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <ProgressRing progress={progressToNextLevel} size={80} color="cyan" showLabel={false} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-lg font-display font-bold">Lv.{level}</span>
               </div>
             </div>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-secondary" />
-              Financial Level {level}
-            </h3>
-            <p className="text-muted-foreground text-sm mt-1">
-              {progressToNextLevel.toFixed(0)}% progress to Level {level + 1}
-            </p>
-            <div className="flex gap-4 mt-3">
-              <div className="flex items-center gap-1.5 text-sm">
-                <Flame className="w-4 h-4 text-orange-500" />
-                <span>{trackingStreak} day streak</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm">
-                <Target className="w-4 h-4 text-primary" />
-                <span>{goalsAchieved} goals achieved</span>
-              </div>
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-secondary" />
+                Financial Level {level}
+              </h3>
+              <p className="text-muted-foreground text-sm mt-1">
+                {progressToNextLevel.toFixed(0)}% to next level
+              </p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => setCurrentView("assistant")} className="gap-2">
+          <div className="flex flex-wrap gap-4 md:ml-auto">
+            <div className="flex items-center gap-1.5 text-sm bg-muted/20 px-3 py-1.5 rounded-lg">
+              <Flame className="w-4 h-4 text-orange-500" />
+              <span>{trackingStreak} day streak</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm bg-muted/20 px-3 py-1.5 rounded-lg">
+              <Target className="w-4 h-4 text-primary" />
+              <span>{goalsAchieved} goals achieved</span>
+            </div>
+          </div>
+          <Button variant="outline" onClick={() => setCurrentView("assistant")} className="gap-2 shrink-0">
             <Sparkles className="w-4 h-4" />
             Ask AI to Analyze
           </Button>

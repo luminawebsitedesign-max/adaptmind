@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Save, Sparkles, ChevronRight, Info, Shield } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { User, Save, Sparkles, ChevronRight, Info, Shield, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -19,10 +21,17 @@ const MAX_PERSONALITY_LENGTH = 1000;
 
 export function ProfileView() {
   const { user, profile } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
   const [aiPersonality, setAiPersonality] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("adaptmind-ai-personality");
@@ -91,7 +100,7 @@ export function ProfileView() {
   const remainingChars = MAX_PERSONALITY_LENGTH - aiPersonality.length;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-2xl">
+    <div className="space-y-6 animate-fade-in max-w-3xl mx-auto py-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
         <span>Settings</span>
@@ -101,7 +110,7 @@ export function ProfileView() {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-display font-bold text-gradient-brand">Profile</h1>
+        <h1 className="text-3xl font-display font-bold text-gradient-brand">Profile Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account information and AI preferences</p>
       </div>
 
@@ -161,6 +170,38 @@ export function ProfileView() {
             <p className="text-xs text-muted-foreground">
               This name will appear throughout the app and in AI conversations.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Appearance Card */}
+      <Card className="glass-strong border-border/40">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {mounted && theme === 'dark' ? (
+              <Moon className="w-5 h-5 text-primary" />
+            ) : (
+              <Sun className="w-5 h-5 text-primary" />
+            )}
+            Appearance
+          </CardTitle>
+          <CardDescription>
+            Customize how AdaptMind looks
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Dark Mode</Label>
+              <p className="text-xs text-muted-foreground">
+                Toggle between light and dark themes
+              </p>
+            </div>
+            <Switch
+              checked={mounted && theme === 'dark'}
+              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              aria-label="Toggle dark mode"
+            />
           </div>
         </CardContent>
       </Card>

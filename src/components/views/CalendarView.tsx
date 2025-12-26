@@ -69,7 +69,7 @@ export function CalendarView() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -82,19 +82,19 @@ export function CalendarView() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
-        {/* Calendar */}
-        <div className="lg:col-span-3 glass rounded-2xl p-3 md:p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base md:text-lg font-semibold">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Calendar - Expanded */}
+        <div className="lg:col-span-2 glass rounded-2xl p-4 md:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg md:text-xl font-semibold">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth} aria-label="Previous month">
-                <ChevronLeft className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handlePrevMonth} aria-label="Previous month">
+                <ChevronLeft className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth} aria-label="Next month">
-                <ChevronRight className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleNextMonth} aria-label="Next month">
+                <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
           </div>
@@ -108,42 +108,42 @@ export function CalendarView() {
             modifiers={modifiers}
             modifiersStyles={{
               hasTask: { 
-                borderBottom: "2px solid hsl(var(--primary))",
+                borderBottom: "3px solid hsl(var(--primary))",
               },
               hasHabit: {
                 backgroundColor: "hsl(var(--accent) / 0.2)",
               },
               hasGoal: {
-                borderBottom: "2px solid hsl(var(--secondary))",
+                borderBottom: "3px solid hsl(var(--secondary))",
               },
             }}
-            className="w-full [&_.rdp-months]:justify-center [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-button]:w-full [&_.rdp-table]:w-full"
+            className="w-full [&_.rdp-months]:justify-center [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-button]:w-full [&_.rdp-button]:h-12 [&_.rdp-button]:text-base [&_.rdp-table]:w-full"
           />
           
-          <div className="flex items-center justify-center gap-6 mt-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-              <span>Task</span>
+          <div className="flex items-center justify-center gap-6 mt-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-primary" />
+              <span>Task Due</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-accent" />
-              <span>Habit</span>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-accent" />
+              <span>Habit Done</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
-              <span>Goal</span>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-secondary" />
+              <span>Goal Deadline</span>
             </div>
           </div>
         </div>
 
         {/* Day Details */}
-        <div className="lg:col-span-2 glass rounded-2xl p-4">
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-primary" />
+        <div className="glass rounded-2xl p-4 md:p-5">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5 text-primary" />
             {format(selectedDate, "EEEE, MMM d")}
           </h3>
           
-          <ScrollArea className="h-[350px]">
+          <ScrollArea className="h-[400px]">
             <div className="space-y-3 pr-2">
               {/* Tasks */}
               {tasksDueOnDate.length > 0 && (

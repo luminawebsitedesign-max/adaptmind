@@ -115,7 +115,7 @@ export function GoalsView() {
 
         <Dialog open={isAddingGoal} onOpenChange={setIsAddingGoal}>
           <DialogTrigger asChild>
-            <Button className="gap-2 glow-magenta bg-secondary hover:bg-secondary/90">
+            <Button className="gap-2 glow-primary bg-secondary hover:bg-secondary/90">
               <Plus className="w-4 h-4" />
               New Goal
             </Button>
@@ -260,7 +260,7 @@ export function GoalsView() {
           <p className="text-muted-foreground mb-4">
             Set your first goal to start tracking your progress
           </p>
-          <Button onClick={() => setIsAddingGoal(true)} className="gap-2 glow-magenta bg-secondary hover:bg-secondary/90">
+          <Button onClick={() => setIsAddingGoal(true)} className="gap-2 glow-primary bg-secondary hover:bg-secondary/90">
             <Plus className="w-4 h-4" />
             Create Your First Goal
           </Button>
@@ -307,7 +307,7 @@ function GoalSection({
   title: string;
   subtitle: string;
   goals: Goal[];
-  color: "cyan" | "magenta" | "purple";
+  color: "cyan" | "magenta" | "purple"; // All map to green variants now
   expandedGoal: string | null;
   setExpandedGoal: (id: string | null) => void;
   toggleMilestone: (goalId: string, milestoneId: string) => void;
@@ -332,8 +332,8 @@ function GoalSection({
             <div
               key={goal.id}
               className={cn(
-                "glass rounded-2xl p-5 transition-all duration-300 hover-glow",
-                expandedGoal === goal.id && "ring-1 ring-primary/30"
+                "glass rounded-2xl p-5 transition-all duration-300",
+                expandedGoal === goal.id && "ring-2 ring-primary/40 shadow-lg"
               )}
             >
               <div className="flex items-start gap-4">
