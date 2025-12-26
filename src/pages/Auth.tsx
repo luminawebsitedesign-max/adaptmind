@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
-import adaptmindLogo from '@/assets/adaptmind-logo.png';
-import adaptmindWordmark from '@/assets/adaptmind-wordmark.png';
+import adaptmindTextLight from '@/assets/adaptmind-text-light.png';
+import adaptmindIconLight from '@/assets/adaptmind-icon-light.png';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -70,7 +70,7 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created! Welcome to Adaptmind.');
+          toast.success('Account created! Welcome to AdaptMind.');
           navigate('/');
         }
       }
@@ -91,19 +91,19 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-card to-background">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <img 
-            src={adaptmindLogo} 
-            alt="Adaptmind" 
-            className="w-24 h-24 mx-auto mb-4 object-contain drop-shadow-lg"
+            src={adaptmindIconLight} 
+            alt="AdaptMind" 
+            className="w-20 h-20 mx-auto mb-4 object-contain"
           />
           <img 
-            src={adaptmindWordmark} 
-            alt="Adaptmind" 
-            className="h-8 mx-auto object-contain"
+            src={adaptmindTextLight} 
+            alt="AdaptMind" 
+            className="h-7 mx-auto object-contain"
           />
           <p className="text-muted-foreground mt-3">
             Your intelligent productivity companion
@@ -111,7 +111,7 @@ export default function Auth() {
         </div>
 
         {/* Auth Card */}
-        <div className="glass rounded-2xl p-8">
+        <div className="glass rounded-2xl p-8 border border-primary/20">
           <h2 className="text-xl font-semibold mb-6 text-center">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
@@ -119,7 +119,7 @@ export default function Auth() {
           {/* Google Sign In */}
           <Button
             variant="outline"
-            className="w-full mb-6 h-12"
+            className="w-full mb-6 h-12 hover:bg-primary/10 hover:border-primary/50"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -206,13 +206,14 @@ export default function Auth() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-12 glow-cyan" disabled={loading}>
+            <Button type="submit" className="w-full h-12 glow-primary" disabled={loading}>
               {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
@@ -231,15 +232,15 @@ export default function Auth() {
 
         {/* Features Preview */}
         <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div className="glass rounded-xl p-4">
+          <div className="glass rounded-xl p-4 border border-primary/10 hover:border-primary/30 transition-colors">
             <div className="text-2xl mb-2">✅</div>
             <p className="text-xs text-muted-foreground">Smart Tasks</p>
           </div>
-          <div className="glass rounded-xl p-4">
+          <div className="glass rounded-xl p-4 border border-primary/10 hover:border-primary/30 transition-colors">
             <div className="text-2xl mb-2">🎯</div>
             <p className="text-xs text-muted-foreground">Goal Tracking</p>
           </div>
-          <div className="glass rounded-xl p-4">
+          <div className="glass rounded-xl p-4 border border-primary/10 hover:border-primary/30 transition-colors">
             <div className="text-2xl mb-2">🤖</div>
             <p className="text-xs text-muted-foreground">AI Planning</p>
           </div>
