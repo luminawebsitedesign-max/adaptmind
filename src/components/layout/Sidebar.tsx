@@ -88,27 +88,17 @@ export function Sidebar() {
           "w-64"
         )}
       >
-      {/* Logo */}
+      {/* Logo - Single icon only */}
       <div className="p-4 border-b border-border/30">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center">
           <img 
             src={adaptmindIconLight} 
             alt="AdaptMind" 
             className={cn(
               "object-contain transition-all duration-300",
-              sidebarCollapsed ? "w-8 h-8" : "w-9 h-9"
+              sidebarCollapsed ? "w-8 h-8" : "w-10 h-10"
             )}
           />
-          {!sidebarCollapsed && (
-            <div className="flex flex-col gap-0.5">
-              <img 
-                src={adaptmindTextLight} 
-                alt="AdaptMind" 
-                className="h-5 object-contain object-left"
-              />
-              <span className="text-[10px] text-muted-foreground tracking-wider uppercase">Productivity</span>
-            </div>
-          )}
         </div>
       </div>
 

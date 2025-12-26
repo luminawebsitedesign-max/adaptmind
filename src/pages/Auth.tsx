@@ -93,19 +93,14 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-card to-background">
       <div className="w-full max-w-md">
-        {/* Logo */}
+        {/* Logo - Single combined logo */}
         <div className="text-center mb-8">
-          <img 
-            src={adaptmindIconLight} 
-            alt="AdaptMind" 
-            className="w-16 h-16 mx-auto mb-4 object-contain"
-          />
           <img 
             src={adaptmindTextLight} 
             alt="AdaptMind" 
-            className="h-10 mx-auto object-contain"
+            className="h-16 mx-auto object-contain"
           />
-          <p className="text-muted-foreground mt-3 text-sm">
+          <p className="text-muted-foreground mt-4 text-sm">
             Your intelligent productivity companion
           </p>
         </div>
