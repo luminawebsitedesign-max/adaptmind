@@ -244,10 +244,10 @@ export function ExportDataView() {
     <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
       {/* Header */}
       <div className="text-center">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-4 glow-cyan">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-4 glow-primary">
           <Download className="w-8 h-8 text-primary-foreground" />
         </div>
-        <h1 className="text-3xl font-display font-bold text-gradient-cyan">
+        <h1 className="text-3xl font-display font-bold text-gradient-brand">
           Export Your Data
         </h1>
         <p className="text-muted-foreground mt-2 max-w-md mx-auto">

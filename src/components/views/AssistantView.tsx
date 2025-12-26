@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Send, User, Sparkles, RefreshCw, Trash2, Mic, MicOff, Zap, ListPlus, Target, Repeat } from "lucide-react";
 import { toast } from "sonner";
-import adaptmindIconDark from "@/assets/adaptmind-icon-dark.png";
+import adaptmindIconLight from "@/assets/adaptmind-icon-light.png";
 
 interface Message {
   id: string;
@@ -210,8 +210,8 @@ export function AssistantView() {
     <div className="h-[calc(100vh-8rem)] flex flex-col animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-            <img src={adaptmindIconDark} alt="AdaptMind AI" className="w-8 h-8 object-contain" />
+          <div className="w-12 h-12 rounded-xl bg-card border border-primary/30 flex items-center justify-center">
+            <img src={adaptmindIconLight} alt="AdaptMind AI" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <h1 className="text-2xl font-display font-bold text-gradient-brand">AI Assistant</h1>

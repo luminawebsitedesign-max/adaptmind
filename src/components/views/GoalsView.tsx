@@ -105,7 +105,7 @@ export function GoalsView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold text-gradient-magenta">
+          <h1 className="text-3xl font-display font-bold text-gradient-brand">
             Goals
           </h1>
           <p className="text-muted-foreground mt-1">

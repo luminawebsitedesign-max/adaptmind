@@ -2,8 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
-import adaptmindIconDark from "@/assets/adaptmind-icon-dark.png";
-import adaptmindTextDark from "@/assets/adaptmind-text-dark.png";
+import adaptmindIconLight from "@/assets/adaptmind-icon-light.png";
+import adaptmindTextLight from "@/assets/adaptmind-text-light.png";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -92,7 +92,7 @@ export function Sidebar() {
       <div className="p-4 border-b border-border/30">
         <div className="flex items-center gap-3">
           <img 
-            src={adaptmindIconDark} 
+            src={adaptmindIconLight} 
             alt="AdaptMind" 
             className={cn(
               "object-contain transition-all duration-300",
@@ -102,7 +102,7 @@ export function Sidebar() {
           {!sidebarCollapsed && (
             <div className="flex flex-col gap-0.5">
               <img 
-                src={adaptmindTextDark} 
+                src={adaptmindTextLight} 
                 alt="AdaptMind" 
                 className="h-5 object-contain object-left"
               />
