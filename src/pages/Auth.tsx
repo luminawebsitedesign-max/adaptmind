@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
-import adaptmindTextDark from '@/assets/adaptmind-text-dark.png';
-import adaptmindIconDark from '@/assets/adaptmind-icon-dark.png';
+import adaptmindTextLight from '@/assets/adaptmind-text-light.png';
+import adaptmindIconLight from '@/assets/adaptmind-icon-light.png';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -96,14 +96,14 @@ export default function Auth() {
         {/* Logo */}
         <div className="text-center mb-8">
           <img 
-            src={adaptmindIconDark} 
+            src={adaptmindIconLight} 
             alt="AdaptMind" 
             className="w-16 h-16 mx-auto mb-4 object-contain"
           />
           <img 
-            src={adaptmindTextDark} 
+            src={adaptmindTextLight} 
             alt="AdaptMind" 
-            className="h-6 mx-auto object-contain"
+            className="h-10 mx-auto object-contain"
           />
           <p className="text-muted-foreground mt-3 text-sm">
             Your intelligent productivity companion

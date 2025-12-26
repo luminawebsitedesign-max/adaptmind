@@ -170,7 +170,7 @@ export function FinanceView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold text-gradient-magenta">
+          <h1 className="text-3xl font-display font-bold text-gradient-brand">
             Finance Tracker
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -241,7 +241,7 @@ export function FinanceView() {
 
           <Dialog open={isAddingPortfolio} onOpenChange={setIsAddingPortfolio}>
             <DialogTrigger asChild>
-              <Button className="gap-2 glow-magenta bg-secondary hover:bg-secondary/90">
+              <Button className="gap-2 glow-primary bg-secondary hover:bg-secondary/90">
                 <Plus className="w-4 h-4" />
                 New Portfolio
               </Button>
@@ -459,7 +459,7 @@ export function FinanceView() {
           <p className="text-muted-foreground mb-4">
             Create your first portfolio to start tracking your finances
           </p>
-          <Button onClick={() => setIsAddingPortfolio(true)} className="gap-2 glow-magenta bg-secondary hover:bg-secondary/90">
+          <Button onClick={() => setIsAddingPortfolio(true)} className="gap-2 glow-primary bg-secondary hover:bg-secondary/90">
             <Plus className="w-4 h-4" />
             Create Your First Portfolio
           </Button>

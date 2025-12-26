@@ -101,7 +101,7 @@ export function ProfileView() {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-display font-bold text-gradient-cyan">Profile</h1>
+        <h1 className="text-3xl font-display font-bold text-gradient-brand">Profile</h1>
         <p className="text-muted-foreground mt-1">Manage your account information and AI preferences</p>
       </div>
 

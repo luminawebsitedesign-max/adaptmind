@@ -73,7 +73,7 @@ export function CalendarView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-cyan">Calendar</h1>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">Calendar</h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">View your tasks, goals, and habits</p>
         </div>
         <Button variant="outline" onClick={handleToday} className="gap-2 w-fit">

@@ -204,7 +204,7 @@ export function TodosView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold text-gradient-cyan">
+          <h1 className="text-3xl font-display font-bold text-gradient-brand">
             Tasks
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -214,7 +214,7 @@ export function TodosView() {
 
         <Dialog open={isAddingList} onOpenChange={setIsAddingList}>
           <DialogTrigger asChild>
-            <Button className="gap-2 glow-cyan">
+            <Button className="gap-2 glow-primary">
               <Plus className="w-4 h-4" />
               New List
             </Button>
