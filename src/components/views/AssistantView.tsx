@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Send, Bot, User, Sparkles, RefreshCw, Trash2, Mic, MicOff, Zap, ListPlus, Target, Repeat } from "lucide-react";
+import { Send, User, Sparkles, RefreshCw, Trash2, Mic, MicOff, Zap, ListPlus, Target, Repeat } from "lucide-react";
 import { toast } from "sonner";
+import adaptmindIconDark from "@/assets/adaptmind-icon-dark.png";
 
 interface Message {
   id: string;
@@ -209,11 +210,11 @@ export function AssistantView() {
     <div className="h-[calc(100vh-8rem)] flex flex-col animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-cyan animate-pulse-slow">
-            <Bot className="w-6 h-6 text-primary-foreground" />
+          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+            <img src={adaptmindIconDark} alt="AdaptMind AI" className="w-8 h-8 object-contain" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-gradient-cyan">AI Assistant</h1>
+            <h1 className="text-2xl font-display font-bold text-gradient-brand">AI Assistant</h1>
             <p className="text-sm text-muted-foreground">Your intelligent productivity copilot</p>
           </div>
         </div>
@@ -230,17 +231,17 @@ export function AssistantView() {
               <div key={message.id} className={cn("flex gap-3", message.role === "user" ? "flex-row-reverse" : "")}>
                 <div className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center shrink-0", 
-                  message.role === "user" ? "bg-secondary/20" : "bg-gradient-to-br from-primary to-accent"
+                  message.role === "user" ? "bg-primary/20" : "bg-accent/20"
                 )}>
                   {message.role === "user" ? (
-                    <User className="w-4 h-4 text-secondary" />
+                    <User className="w-4 h-4 text-primary" />
                   ) : (
-                    <Sparkles className="w-4 h-4 text-primary-foreground" />
+                    <Sparkles className="w-4 h-4 text-accent" />
                   )}
                 </div>
                 <div className={cn(
                   "max-w-[80%] rounded-2xl px-4 py-3", 
-                  message.role === "user" ? "bg-secondary/20" : "bg-muted/20"
+                  message.role === "user" ? "bg-primary/10 border border-primary/20" : "bg-card border border-border"
                 )}>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -251,14 +252,14 @@ export function AssistantView() {
             ))}
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <RefreshCw className="w-4 h-4 text-primary-foreground animate-spin" />
+                <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                  <RefreshCw className="w-4 h-4 text-accent animate-spin" />
                 </div>
-                <div className="bg-muted/20 rounded-2xl px-4 py-3">
+                <div className="bg-card border border-border rounded-2xl px-4 py-3">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
@@ -289,7 +290,7 @@ export function AssistantView() {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 border-t border-border/30">
+        <div className="p-4 border-t border-border/30 bg-card/50">
           <div className="flex gap-2 items-end">
             <Button
               variant={isRecording ? "destructive" : "outline"}
@@ -308,7 +309,7 @@ export function AssistantView() {
               onChange={(e) => setInput(e.target.value)} 
               placeholder={isRecording ? "Listening..." : "Ask me to organize tasks, create goals, or plan your week..."} 
               className={cn(
-                "flex-1 bg-muted/10 rounded-lg border border-border px-4 py-3 text-sm resize-none min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                "flex-1 bg-background rounded-lg border border-border px-4 py-3 text-sm resize-none min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
                 isRecording && "border-destructive"
               )}
               rows={1}
@@ -328,9 +329,10 @@ export function AssistantView() {
             <Button 
               onClick={handleSend} 
               disabled={!input.trim() || isLoading} 
+              size="icon"
               className={cn(
-                "glow-cyan h-11 w-11 shrink-0",
-                !input.trim() && "opacity-50"
+                "h-11 w-11 shrink-0 transition-all",
+                input.trim() ? "glow-primary bg-primary hover:bg-primary/90" : "bg-muted text-muted-foreground"
               )}
               aria-label="Send message"
             >
@@ -341,6 +343,9 @@ export function AssistantView() {
               )}
             </Button>
           </div>
+          {input.trim() && (
+            <p className="text-xs text-muted-foreground mt-2">Press Enter to send, Shift+Enter for new line</p>
+          )}
         </div>
       </div>
 
