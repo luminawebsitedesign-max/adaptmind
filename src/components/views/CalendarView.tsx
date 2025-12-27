@@ -79,17 +79,18 @@ export function CalendarView() {
   };
 
   return (
-    <div className="h-full flex flex-col animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+    <div className="h-full flex flex-col animate-fade-in -m-2">
+      {/* Compact Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 px-2">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">Calendar</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">View your tasks, goals, and habits</p>
+          <h1 className="text-2xl font-display font-bold text-gradient-brand">Calendar</h1>
+          <p className="text-muted-foreground text-sm">View your tasks, goals, and habits</p>
         </div>
         <div className="flex items-center gap-2">
           {!isGoogleConnected && (
             <Button 
               variant="outline" 
+              size="sm"
               onClick={handleConnectGoogle} 
               className="gap-2 border-primary/30 hover:border-primary hover:bg-primary/10"
             >
@@ -99,34 +100,34 @@ export function CalendarView() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Connect Google Calendar
+              Google Calendar
             </Button>
           )}
-          <Button variant="outline" onClick={handleToday} className="gap-2">
+          <Button variant="outline" size="sm" onClick={handleToday} className="gap-2">
             <CalendarIcon className="w-4 h-4" />
             Today
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-0">
-        {/* Calendar - Expanded to take more space */}
-        <div className="lg:col-span-3 glass rounded-2xl p-4 md:p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl md:text-2xl font-semibold text-primary">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-3 min-h-0 px-2">
+        {/* Calendar - Expanded to full width */}
+        <div className="lg:col-span-3 glass rounded-xl p-3 md:p-4 flex flex-col bg-card/80">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-2xl md:text-3xl font-display font-bold text-primary">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10" onClick={handlePrevMonth} aria-label="Previous month">
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={handlePrevMonth} aria-label="Previous month">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10" onClick={handleNextMonth} aria-label="Next month">
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={handleNextMonth} aria-label="Next month">
                 <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
           </div>
           
-          <div className="flex-1 min-h-[500px]">
+          <div className="flex-1 min-h-[450px] md:min-h-[550px]">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -145,28 +146,28 @@ export function CalendarView() {
                   borderBottom: "3px solid hsl(var(--secondary))",
                 },
               }}
-              className="w-full h-full [&_.rdp-months]:h-full [&_.rdp-months]:justify-center [&_.rdp-month]:h-full [&_.rdp-month]:flex [&_.rdp-month]:flex-col [&_.rdp-table]:flex-1 [&_.rdp-tbody]:flex [&_.rdp-tbody]:flex-col [&_.rdp-tbody]:flex-1 [&_.rdp-cell]:flex-1 [&_.rdp-head_cell]:w-full [&_.rdp-button]:w-full [&_.rdp-button]:h-full [&_.rdp-button]:min-h-[60px] [&_.rdp-button]:text-lg [&_.rdp-row]:flex-1"
+              className="w-full h-full [&_.rdp-months]:h-full [&_.rdp-months]:justify-center [&_.rdp-month]:h-full [&_.rdp-month]:flex [&_.rdp-month]:flex-col [&_.rdp-table]:flex-1 [&_.rdp-tbody]:flex [&_.rdp-tbody]:flex-col [&_.rdp-tbody]:flex-1 [&_.rdp-cell]:flex-1 [&_.rdp-head_cell]:w-full [&_.rdp-button]:w-full [&_.rdp-button]:h-full [&_.rdp-button]:min-h-[50px] [&_.rdp-button]:md:min-h-[70px] [&_.rdp-button]:text-base [&_.rdp-button]:md:text-lg [&_.rdp-row]:flex-1"
             />
           </div>
           
-          <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-border/50 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-primary" />
+              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
               <span>Task Due</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-accent" />
+              <div className="w-2.5 h-2.5 rounded-full bg-accent" />
               <span>Habit Done</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-secondary" />
+              <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
               <span>Goal Deadline</span>
             </div>
           </div>
         </div>
 
-        {/* Day Details Sidebar */}
-        <div className="glass rounded-2xl p-4 md:p-5 flex flex-col">
+        {/* Compact Day Details Sidebar */}
+        <div className="glass rounded-xl p-3 md:p-4 flex flex-col bg-card/80">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <CalendarIcon className="w-5 h-5 text-primary" />
             {format(selectedDate, "EEEE, MMM d")}
