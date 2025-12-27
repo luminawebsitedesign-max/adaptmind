@@ -201,22 +201,23 @@ export function TodosView() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with clear separation */}
+      <div className="flex items-center justify-between border-b border-border/50 pb-4">
         <div>
           <h1 className="text-3xl font-display font-bold text-gradient-brand">
             Tasks
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Drag and drop to reorder or move between lists
+          <p className="text-muted-foreground mt-1 flex items-center gap-2">
+            <GripVertical className="w-4 h-4" />
+            <span>Drag tasks to reorder or move between lists</span>
           </p>
         </div>
 
         <Dialog open={isAddingList} onOpenChange={setIsAddingList}>
           <DialogTrigger asChild>
-            <Button className="gap-2 glow-primary">
-              <Plus className="w-4 h-4" />
-              New List
+            <Button className="gap-2 glow-primary" size="lg">
+              <Plus className="w-5 h-5" />
+              <span className="font-semibold">Create New List</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="glass-strong">
@@ -229,7 +230,7 @@ export function TodosView() {
             <div className="space-y-4 mt-4">
               <div className="flex gap-2">
                 <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">Icon</label>
+                  <label className="text-xs text-muted-foreground font-medium">Icon</label>
                   <Input
                     placeholder="📝"
                     value={newListIcon}
@@ -239,7 +240,7 @@ export function TodosView() {
                   />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <label className="text-xs text-muted-foreground">List Name *</label>
+                  <label className="text-xs text-muted-foreground font-medium">List Name *</label>
                   <Input
                     placeholder="e.g., Work, Personal, Shopping"
                     value={newListName}
@@ -279,12 +280,26 @@ export function TodosView() {
                   ) : (
                     <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform" />
                   )}
-                  <span className="text-2xl">{list.icon}</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-2xl cursor-help">{list.icon}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>List category icon</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <h3 className="font-semibold text-lg">{list.name}</h3>
                   {list.items.length > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      {list.items.filter((i) => i.completed).length}/{list.items.length}
-                    </span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="text-sm bg-muted/30 px-2 py-0.5 rounded-full font-medium cursor-help">
+                            {list.items.filter((i) => i.completed).length} / {list.items.length} completed
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>Tasks completed out of total</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -328,7 +343,21 @@ export function TodosView() {
                             <Plus className="w-6 h-6 text-primary/60" />
                           </div>
                           <p className="text-sm font-medium">No tasks yet</p>
-                          <p className="text-xs mt-1 text-muted-foreground/70">Use the quick add bar below or drag tasks here to get started!</p>
+                          <p className="text-xs mt-1 text-muted-foreground/70 mb-3">Drag tasks here or add one below</p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setQuickTaskListId(list.id);
+                              const input = document.querySelector<HTMLInputElement>('input[placeholder="Add a new task..."]');
+                              input?.focus();
+                            }}
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Add Task to This List
+                          </Button>
                         </div>
                       ) : (
                         list.items.map((item, index) => (
@@ -387,59 +416,71 @@ export function TodosView() {
         </div>
       </DragDropContext>
 
-      {/* Quick Add Bar - Fixed at bottom, properly centered */}
+      {/* Quick Add Bar - Fixed at bottom, properly centered with labels */}
       {todoLists.length > 0 && (
         <div className="fixed bottom-6 left-0 right-0 px-4 z-30 md:left-64">
           <div className="max-w-4xl mx-auto">
             <div className="glass-strong rounded-2xl p-4 shadow-xl border border-border/30">
-              <div className="flex gap-3 items-center flex-wrap sm:flex-nowrap">
-                <Input
-                  value={quickTaskTitle}
-                  onChange={(e) => setQuickTaskTitle(e.target.value)}
-                  placeholder="Add a new task..."
-                  className="flex-1 bg-muted/10 h-11 min-w-[150px]"
-                  onKeyDown={(e) => e.key === "Enter" && handleQuickAddTask()}
-                />
-                <Select
-                  value={quickTaskListId}
-                  onValueChange={setQuickTaskListId}
-                >
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Select list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {todoLists.map((list) => (
-                      <SelectItem key={list.id} value={list.id}>
-                        <span className="flex items-center gap-2">
-                          <span>{list.icon}</span>
-                          <span>{list.name}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={quickTaskPriority}
-                  onValueChange={(v) => setQuickTaskPriority(v as "low" | "medium" | "high")}
-                >
-                  <SelectTrigger className="w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex gap-3 items-end flex-wrap sm:flex-nowrap">
+                <div className="flex-1 min-w-[150px] space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">New Task</label>
+                  <Input
+                    value={quickTaskTitle}
+                    onChange={(e) => setQuickTaskTitle(e.target.value)}
+                    placeholder="What needs to be done?"
+                    className="bg-muted/10 h-11"
+                    onKeyDown={(e) => e.key === "Enter" && handleQuickAddTask()}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Add to List</label>
+                  <Select
+                    value={quickTaskListId}
+                    onValueChange={setQuickTaskListId}
+                  >
+                    <SelectTrigger className="w-36 h-11">
+                      <SelectValue placeholder="Select list" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {todoLists.map((list) => (
+                        <SelectItem key={list.id} value={list.id}>
+                          <span className="flex items-center gap-2">
+                            <span>{list.icon}</span>
+                            <span>{list.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Priority</label>
+                  <Select
+                    value={quickTaskPriority}
+                    onValueChange={(v) => setQuickTaskPriority(v as "low" | "medium" | "high")}
+                  >
+                    <SelectTrigger className="w-28 h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">🟢 Low</SelectItem>
+                      <SelectItem value="medium">🟡 Medium</SelectItem>
+                      <SelectItem value="high">🔴 High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button 
                   onClick={handleQuickAddTask} 
                   disabled={!quickTaskTitle.trim() || !quickTaskListId || isAddingQuickTask}
-                  className="glow-primary h-11 px-6"
+                  className="glow-primary h-11 px-6 gap-2"
                 >
                   {isAddingQuickTask ? (
                     <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span className="hidden sm:inline">Add Task</span>
+                    </>
                   )}
                 </Button>
               </div>
@@ -534,13 +575,16 @@ function TaskItem({
         <p
           className={cn(
             "font-medium truncate transition-all",
-            item.completed && "text-muted-foreground"
+            item.completed && "line-through text-muted-foreground/60"
           )}
         >
           {item.title}
         </p>
         {item.description && (
-          <p className="text-sm text-muted-foreground truncate">
+          <p className={cn(
+            "text-sm text-muted-foreground truncate",
+            item.completed && "line-through opacity-60"
+          )}>
             {item.description}
           </p>
         )}
