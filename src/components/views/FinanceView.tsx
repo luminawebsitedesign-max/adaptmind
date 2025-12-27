@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Sparkles,
+  Upload,
+  FileSpreadsheet,
+  Download,
+  AlertCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -40,6 +44,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Portfolio, Transaction, FinanceGoal } from "@/types";
 import { toast } from "sonner";
 
@@ -83,6 +88,105 @@ export function FinanceView() {
     portfolioId: "",
     portfolioName: "",
   });
+  const [isCSVDialogOpen, setIsCSVDialogOpen] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [csvPreview, setCsvPreview] = useState<Array<{ type: string; amount: number; description: string; date: string }>>([]);
+  const [selectedPortfolioForCSV, setSelectedPortfolioForCSV] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setCsvError(null);
+    setCsvPreview([]);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          setCsvError("CSV file must have a header row and at least one data row");
+          return;
+        }
+
+        const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+        const typeIndex = header.findIndex(h => h.includes('type'));
+        const amountIndex = header.findIndex(h => h.includes('amount'));
+        const descIndex = header.findIndex(h => h.includes('description') || h.includes('desc'));
+        const dateIndex = header.findIndex(h => h.includes('date'));
+
+        if (amountIndex === -1) {
+          setCsvError("CSV must have an 'amount' column. Expected columns: type, amount, description, date");
+          return;
+        }
+
+        const parsed: Array<{ type: string; amount: number; description: string; date: string }> = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+          
+          const amount = parseFloat(values[amountIndex] || '0');
+          if (isNaN(amount) || amount === 0) continue;
+
+          const type = (typeIndex >= 0 ? values[typeIndex]?.toLowerCase() : 'income') || 'income';
+          const validType = ['income', 'expense', 'transfer'].includes(type) ? type : (amount >= 0 ? 'income' : 'expense');
+          
+          parsed.push({
+            type: validType,
+            amount: Math.abs(amount),
+            description: descIndex >= 0 ? values[descIndex] || `Transaction ${i}` : `Transaction ${i}`,
+            date: dateIndex >= 0 ? values[dateIndex] || new Date().toISOString() : new Date().toISOString(),
+          });
+        }
+
+        if (parsed.length === 0) {
+          setCsvError("No valid transactions found in CSV");
+          return;
+        }
+
+        setCsvPreview(parsed);
+      } catch (err) {
+        setCsvError("Failed to parse CSV file. Please check the format.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImportCSV = () => {
+    if (!selectedPortfolioForCSV || csvPreview.length === 0) return;
+
+    csvPreview.forEach(tx => {
+      addTransaction({
+        portfolioId: selectedPortfolioForCSV,
+        type: tx.type as Transaction["type"],
+        amount: tx.amount,
+        description: tx.description,
+        category: "Imported",
+        date: new Date(tx.date),
+      });
+    });
+
+    toast.success(`Imported ${csvPreview.length} transactions!`);
+    setIsCSVDialogOpen(false);
+    setCsvPreview([]);
+    setCsvError(null);
+    setSelectedPortfolioForCSV("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const downloadTemplate = () => {
+    const template = "type,amount,description,date\nincome,1000,Salary,2024-01-15\nexpense,50,Groceries,2024-01-16\nexpense,25,Gas,2024-01-17";
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'transactions_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleAddPortfolio = () => {
     if (newPortfolio.name.trim()) {
@@ -178,7 +282,102 @@ export function FinanceView() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* CSV Import Button */}
+          <Dialog open={isCSVDialogOpen} onOpenChange={setIsCSVDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2" disabled={portfolios.length === 0}>
+                <Upload className="w-4 h-4" />
+                Import CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="glass-strong max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileSpreadsheet className="w-5 h-5" />
+                  Import Transactions from CSV
+                </DialogTitle>
+                <DialogDescription>
+                  Upload a CSV file with your transactions. Required column: amount. Optional: type, description, date.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Download Template
+                </Button>
+
+                <Select value={selectedPortfolioForCSV} onValueChange={setSelectedPortfolioForCSV}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select portfolio for import" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portfolios.map(p => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{p.icon}</span>
+                          <span>{p.name}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv"
+                    onChange={handleCSVUpload}
+                    className="hidden"
+                    id="csv-upload"
+                  />
+                  <label htmlFor="csv-upload" className="cursor-pointer">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm font-medium">Click to upload CSV</p>
+                    <p className="text-xs text-muted-foreground mt-1">or drag and drop</p>
+                  </label>
+                </div>
+
+                {csvError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{csvError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {csvPreview.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-primary">
+                      ✓ Found {csvPreview.length} transactions to import
+                    </p>
+                    <div className="max-h-40 overflow-y-auto space-y-1 text-sm bg-muted/20 rounded-lg p-2">
+                      {csvPreview.slice(0, 5).map((tx, i) => (
+                        <div key={i} className="flex justify-between">
+                          <span className="truncate">{tx.description}</span>
+                          <span className={tx.type === 'income' ? 'text-primary' : 'text-destructive'}>
+                            {tx.type === 'income' ? '+' : '-'}${tx.amount}
+                          </span>
+                        </div>
+                      ))}
+                      {csvPreview.length > 5 && (
+                        <p className="text-muted-foreground text-xs">...and {csvPreview.length - 5} more</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <Button 
+                  onClick={handleImportCSV} 
+                  className="w-full"
+                  disabled={!selectedPortfolioForCSV || csvPreview.length === 0}
+                >
+                  Import {csvPreview.length} Transactions
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={isAddingTransaction} onOpenChange={setIsAddingTransaction}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2" disabled={portfolios.length === 0}>
