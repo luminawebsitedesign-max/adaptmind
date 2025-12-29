@@ -51,15 +51,18 @@ export function DashboardView() {
   }, [weekStart, todoLists, habits, goals]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">
             Welcome Back
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Here's your productivity overview for today
+          <p className="text-muted-foreground mt-2 text-sm md:text-base">
+            {hasData 
+              ? "Here's your productivity overview for today"
+              : "Start tracking your tasks, goals, and habits to see your progress here"
+            }
           </p>
         </div>
         <button 
@@ -82,7 +85,7 @@ export function DashboardView() {
         {/* Tasks Overview */}
         <div
           onClick={() => setCurrentView("todos")}
-          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-primary/30"
+          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-primary/30 min-h-[220px] flex flex-col"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -92,28 +95,34 @@ export function DashboardView() {
               <div>
                 <h3 className="font-semibold text-lg">Tasks</h3>
                 <p className="text-sm text-muted-foreground">
-                  {totalTasks > 0 ? `${completedTasks} of ${totalTasks} completed` : 'No tasks yet'}
+                  {totalTasks > 0 ? `${completedTasks} of ${totalTasks} completed` : 'Track your to-dos'}
                 </p>
               </div>
             </div>
             <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          {totalTasks > 0 ? (
-            <ProgressRing progress={taskCompletion} size={100} color="cyan" />
-          ) : (
-            <div className="h-[100px] flex items-center justify-center">
-              <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 hover:border-primary/30" onClick={(e) => { e.stopPropagation(); setCurrentView("todos"); }}>
-                <Zap className="w-4 h-4" />
-                Add your first task
-              </Button>
-            </div>
-          )}
+          <div className="flex-1 flex items-center justify-center">
+            {totalTasks > 0 ? (
+              <ProgressRing progress={taskCompletion} size={100} color="cyan" />
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CheckSquare className="w-8 h-8 text-primary/50" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Create task lists to organize your work</p>
+                <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 hover:border-primary/30" onClick={(e) => { e.stopPropagation(); setCurrentView("todos"); }}>
+                  <Zap className="w-4 h-4" />
+                  Add your first task
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Goals Overview */}
         <div
           onClick={() => setCurrentView("goals")}
-          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-secondary/30"
+          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-secondary/30 min-h-[220px] flex flex-col"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -123,28 +132,34 @@ export function DashboardView() {
               <div>
                 <h3 className="font-semibold text-lg">Goals</h3>
                 <p className="text-sm text-muted-foreground">
-                  {goals.length > 0 ? `${goals.length} active goal${goals.length !== 1 ? 's' : ''}` : 'No goals yet'}
+                  {goals.length > 0 ? `${goals.length} active goal${goals.length !== 1 ? 's' : ''}` : 'Track milestones'}
                 </p>
               </div>
             </div>
             <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          {goals.length > 0 ? (
-            <ProgressRing progress={avgGoalProgress} size={100} color="magenta" />
-          ) : (
-            <div className="h-[100px] flex items-center justify-center">
-              <Button variant="outline" size="sm" className="gap-2 hover:bg-secondary/10 hover:border-secondary/30" onClick={(e) => { e.stopPropagation(); setCurrentView("goals"); }}>
-                <Zap className="w-4 h-4" />
-                Set your first goal
-              </Button>
-            </div>
-          )}
+          <div className="flex-1 flex items-center justify-center">
+            {goals.length > 0 ? (
+              <ProgressRing progress={avgGoalProgress} size={100} color="magenta" />
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-secondary/10 flex items-center justify-center">
+                  <Target className="w-8 h-8 text-secondary/50" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Set goals and track your progress over time</p>
+                <Button variant="outline" size="sm" className="gap-2 hover:bg-secondary/10 hover:border-secondary/30" onClick={(e) => { e.stopPropagation(); setCurrentView("goals"); }}>
+                  <Zap className="w-4 h-4" />
+                  Set your first goal
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Habits Overview */}
         <div
           onClick={() => setCurrentView("habits")}
-          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-accent/30"
+          className="glass rounded-2xl p-6 hover-glow cursor-pointer transition-all duration-300 hover:scale-[1.02] group hover:border-accent/30 min-h-[220px] flex flex-col"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -154,22 +169,28 @@ export function DashboardView() {
               <div>
                 <h3 className="font-semibold text-lg">Habits</h3>
                 <p className="text-sm text-muted-foreground">
-                  {habits.length > 0 ? `${habitsCompletedToday} of ${habits.length} today` : 'No habits yet'}
+                  {habits.length > 0 ? `${habitsCompletedToday} of ${habits.length} today` : 'Build routines'}
                 </p>
               </div>
             </div>
             <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          {habits.length > 0 ? (
-            <ProgressRing progress={habitCompletion} size={100} color="purple" />
-          ) : (
-            <div className="h-[100px] flex items-center justify-center">
-              <Button variant="outline" size="sm" className="gap-2 hover:bg-accent/10 hover:border-accent/30" onClick={(e) => { e.stopPropagation(); setCurrentView("habits"); }}>
-                <Zap className="w-4 h-4" />
-                Start a habit
-              </Button>
-            </div>
-          )}
+          <div className="flex-1 flex items-center justify-center">
+            {habits.length > 0 ? (
+              <ProgressRing progress={habitCompletion} size={100} color="purple" />
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center">
+                  <Repeat className="w-8 h-8 text-accent/50" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Build daily habits and track your streaks</p>
+                <Button variant="outline" size="sm" className="gap-2 hover:bg-accent/10 hover:border-accent/30" onClick={(e) => { e.stopPropagation(); setCurrentView("habits"); }}>
+                  <Zap className="w-4 h-4" />
+                  Start a habit
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

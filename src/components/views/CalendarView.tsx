@@ -79,10 +79,10 @@ export function CalendarView() {
   };
 
   return (
-    <div className="h-full flex flex-col animate-fade-in">
-      {/* Header - Minimal spacing */}
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-display font-bold text-gradient-brand">Calendar</h1>
+    <div className="h-full flex flex-col animate-fade-in overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">Calendar</h1>
         <div className="flex items-center gap-2">
           {!isGoogleConnected && (
             <Button 
@@ -107,38 +107,38 @@ export function CalendarView() {
       </div>
 
       {/* Main Content - Full height grid */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-2 min-h-0">
-        {/* Calendar Container - Maximum space */}
-        <div className="rounded-xl p-4 flex flex-col bg-card/60 border border-border/30">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 min-h-0 overflow-hidden">
+        {/* Calendar Container */}
+        <div className="rounded-2xl p-5 md:p-6 flex flex-col bg-card/80 border border-border/40 shadow-lg overflow-hidden">
           {/* Month Header with Navigation */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-primary tracking-tight">
+          <div className="flex items-center justify-between mb-5 shrink-0">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground tracking-tight">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="icon" 
-                className="h-10 w-10 hover:bg-primary/10" 
+                className="h-9 w-9 md:h-10 md:w-10 hover:bg-primary/10 border-border/50" 
                 onClick={handlePrevMonth} 
                 aria-label="Previous month"
               >
-                <ChevronLeft className="w-6 h-6" />
+                <ChevronLeft className="w-5 h-5" />
               </Button>
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="icon" 
-                className="h-10 w-10 hover:bg-primary/10" 
+                className="h-9 w-9 md:h-10 md:w-10 hover:bg-primary/10 border-border/50" 
                 onClick={handleNextMonth} 
                 aria-label="Next month"
               >
-                <ChevronRight className="w-6 h-6" />
+                <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
           </div>
           
           {/* Calendar - Fills remaining space */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -163,40 +163,40 @@ export function CalendarView() {
                 "[&_.rdp-month]:h-full [&_.rdp-month]:w-full [&_.rdp-month]:flex [&_.rdp-month]:flex-col",
                 "[&_.rdp-caption]:hidden",
                 "[&_.rdp-table]:flex-1 [&_.rdp-table]:w-full [&_.rdp-table]:table-fixed",
-                "[&_.rdp-thead]:mb-2",
-                "[&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:font-medium [&_.rdp-head_cell]:text-sm [&_.rdp-head_cell]:pb-3",
+                "[&_.rdp-thead]:mb-3",
+                "[&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:font-semibold [&_.rdp-head_cell]:text-xs [&_.rdp-head_cell]:md:text-sm [&_.rdp-head_cell]:pb-4 [&_.rdp-head_cell]:uppercase [&_.rdp-head_cell]:tracking-wide",
                 "[&_.rdp-tbody]:flex [&_.rdp-tbody]:flex-col [&_.rdp-tbody]:flex-1",
                 "[&_.rdp-row]:flex [&_.rdp-row]:flex-1",
-                "[&_.rdp-cell]:flex-1 [&_.rdp-cell]:p-0.5",
-                "[&_.rdp-button]:w-full [&_.rdp-button]:h-full [&_.rdp-button]:rounded-lg",
+                "[&_.rdp-cell]:flex-1 [&_.rdp-cell]:p-1",
+                "[&_.rdp-button]:w-full [&_.rdp-button]:h-full [&_.rdp-button]:rounded-xl [&_.rdp-button]:min-h-[48px]",
                 "[&_.rdp-button]:text-base [&_.rdp-button]:md:text-lg [&_.rdp-button]:font-medium",
-                "[&_.rdp-button]:hover:bg-primary/20 [&_.rdp-button]:transition-colors",
-                "[&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground",
-                "[&_.rdp-day_today]:border-2 [&_.rdp-day_today]:border-primary/50"
+                "[&_.rdp-button]:hover:bg-primary/15 [&_.rdp-button]:transition-all",
+                "[&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_selected]:shadow-md",
+                "[&_.rdp-day_today]:ring-2 [&_.rdp-day_today]:ring-primary/60 [&_.rdp-day_today]:bg-primary/10"
               )}
             />
           </div>
           
-          {/* Legend - Compact */}
-          <div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-border/30 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Task</span>
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-8 mt-4 pt-4 border-t border-border/40 text-xs text-muted-foreground shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+              <span className="font-medium">Tasks</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-accent" />
-              <span>Habit</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+              <span className="font-medium">Habits</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-secondary" />
-              <span>Goal</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
+              <span className="font-medium">Goals</span>
             </div>
           </div>
         </div>
 
-        {/* Day Details Sidebar - Narrower */}
-        <div className="rounded-xl p-3 flex flex-col bg-card/60 border border-border/30">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        {/* Day Details Sidebar */}
+        <div className="rounded-2xl p-4 flex flex-col bg-card/80 border border-border/40 shadow-lg overflow-hidden">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 shrink-0">
             <CalendarIcon className="w-5 h-5 text-primary" />
             {format(selectedDate, "EEEE, MMM d")}
           </h3>
