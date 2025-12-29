@@ -67,53 +67,95 @@ export function AssistantView() {
   }, [error, clearError]);
 
   const handleAIActions = useCallback((actions: { type: string; params: string[] }[]) => {
+    let successCount = 0;
+    let failCount = 0;
+    const results: string[] = [];
+
     actions.forEach(action => {
-      switch (action.type) {
-        case 'CREATE_TASK': {
-          const [listName, title, priority = 'medium'] = action.params;
-          const targetList = todoLists.find(l => 
-            l.name.toLowerCase() === listName.toLowerCase()
-          );
-          if (targetList) {
-            addTodoItem(targetList.id, {
-              title,
-              priority: priority as 'low' | 'medium' | 'high',
-              completed: false,
-              progress: 0,
-              listId: targetList.id,
-            });
-            toast.success(`Created task: ${title}`);
+      try {
+        switch (action.type) {
+          case 'CREATE_TASK': {
+            const [listName, title, priority = 'medium'] = action.params;
+            if (!listName || !title) {
+              failCount++;
+              results.push(`Failed to create task: missing list name or title`);
+              break;
+            }
+            const targetList = todoLists.find(l => 
+              l.name.toLowerCase() === listName.toLowerCase()
+            );
+            if (targetList) {
+              addTodoItem(targetList.id, {
+                title,
+                priority: priority as 'low' | 'medium' | 'high',
+                completed: false,
+                progress: 0,
+                listId: targetList.id,
+              });
+              successCount++;
+              results.push(`Created task "${title}" in ${listName}`);
+            } else {
+              failCount++;
+              results.push(`Could not find list "${listName}" - task not created`);
+            }
+            break;
           }
-          break;
+          case 'CREATE_GOAL': {
+            const [title, category, milestonesStr] = action.params;
+            if (!title) {
+              failCount++;
+              results.push(`Failed to create goal: missing title`);
+              break;
+            }
+            const milestones = milestonesStr?.split(',').map((m, i) => ({
+              id: String(i + 1),
+              title: m.trim(),
+              completed: false,
+            })) || [];
+            addGoal({
+              title,
+              category: (category as 'short' | 'medium' | 'custom') || 'short',
+              progress: 0,
+              milestones,
+            });
+            successCount++;
+            results.push(`Created goal "${title}"`);
+            break;
+          }
+          case 'CREATE_HABIT': {
+            const [name, icon = '✨', frequency = 'daily'] = action.params;
+            if (!name) {
+              failCount++;
+              results.push(`Failed to create habit: missing name`);
+              break;
+            }
+            addHabit({
+              name,
+              icon,
+              frequency: frequency as 'daily' | 'weekly' | 'custom',
+            });
+            successCount++;
+            results.push(`Created habit "${name}"`);
+            break;
+          }
+          default:
+            // Unknown action type - ignore silently
+            break;
         }
-        case 'CREATE_GOAL': {
-          const [title, category, milestonesStr] = action.params;
-          const milestones = milestonesStr?.split(',').map((m, i) => ({
-            id: String(i + 1),
-            title: m.trim(),
-            completed: false,
-          })) || [];
-          addGoal({
-            title,
-            category: category as 'short' | 'medium' | 'custom',
-            progress: 0,
-            milestones,
-          });
-          toast.success(`Created goal: ${title}`);
-          break;
-        }
-        case 'CREATE_HABIT': {
-          const [name, icon = '✨', frequency = 'daily'] = action.params;
-          addHabit({
-            name,
-            icon,
-            frequency: frequency as 'daily' | 'weekly' | 'custom',
-          });
-          toast.success(`Created habit: ${name}`);
-          break;
-        }
+      } catch (err) {
+        failCount++;
+        results.push(`Error processing action: ${action.type}`);
       }
     });
+
+    // Show consolidated feedback
+    if (successCount > 0 && failCount === 0) {
+      toast.success(`${successCount} item${successCount > 1 ? 's' : ''} created successfully`);
+    } else if (successCount > 0 && failCount > 0) {
+      toast.warning(`${successCount} created, ${failCount} failed`);
+    } else if (failCount > 0) {
+      toast.error(`Failed to create items. Please try again.`);
+    }
   }, [todoLists, addTodoItem, addGoal, addHabit]);
 
   const sendMessage = async (messageText: string) => {

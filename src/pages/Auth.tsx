@@ -83,9 +83,16 @@ export default function Auth() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      toast.error(error.message);
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        toast.error('Google sign-in failed. Please try again.');
+        setLoading(false);
+      } else {
+        toast.info('Redirecting to Google...');
+      }
+    } catch (err) {
+      toast.error('Connection error. Please try again.');
       setLoading(false);
     }
   };
