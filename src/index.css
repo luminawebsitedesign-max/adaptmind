@@ -29,14 +29,15 @@
        Black: #000000
        White: #ffffff
     */
-    --background: 80 20% 98%;
-    --foreground: 0 0% 8%;
+    /* Light mode - softer, less harsh tones */
+    --background: 80 12% 94%;
+    --foreground: 0 0% 12%;
 
-    --card: 80 15% 95%;
-    --card-foreground: 0 0% 8%;
+    --card: 80 10% 90%;
+    --card-foreground: 0 0% 12%;
 
-    --popover: 80 15% 96%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 80 10% 91%;
+    --popover-foreground: 0 0% 12%;
 
     /* Primary: #c1ff72 */
     --primary: 84 100% 72%;
@@ -46,8 +47,8 @@
     --secondary: 100 64% 59%;
     --secondary-foreground: 0 0% 0%;
 
-    --muted: 80 10% 92%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 80 8% 86%;
+    --muted-foreground: 0 0% 38%;
 
     /* Accent: #00bf63 */
     --accent: 151 100% 37%;
@@ -56,19 +57,19 @@
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 80 15% 85%;
-    --input: 80 10% 94%;
+    --border: 80 10% 80%;
+    --input: 80 8% 88%;
     --ring: 84 100% 60%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 10%;
+    --sidebar-background: 80 10% 92%;
+    --sidebar-foreground: 0 0% 12%;
     --sidebar-primary: 84 100% 72%;
     --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 151 100% 37%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 80 15% 90%;
+    --sidebar-border: 80 10% 84%;
     --sidebar-ring: 84 100% 60%;
 
     --chart-1: 84 100% 72%;
@@ -138,9 +139,9 @@
     min-height: 100vh;
   }
 
-  /* Light mode - soft off-white for comfort */
+  /* Light mode - softer, easier on the eyes */
   :root body {
-    background: linear-gradient(180deg, hsl(80 20% 97%) 0%, hsl(80 15% 95%) 100%);
+    background: linear-gradient(180deg, hsl(80 12% 93%) 0%, hsl(80 10% 90%) 100%);
   }
 
   /* Dark mode body background - slightly warmer */
