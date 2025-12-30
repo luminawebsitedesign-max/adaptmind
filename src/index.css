@@ -29,15 +29,15 @@
        Black: #000000
        White: #ffffff
     */
-    /* Light mode - softer, less harsh tones */
-    --background: 80 12% 94%;
-    --foreground: 0 0% 12%;
+    /* Light mode - comfortable tones, reduced glare */
+    --background: 80 8% 88%;
+    --foreground: 0 0% 15%;
 
-    --card: 80 10% 90%;
-    --card-foreground: 0 0% 12%;
+    --card: 80 6% 82%;
+    --card-foreground: 0 0% 15%;
 
-    --popover: 80 10% 91%;
-    --popover-foreground: 0 0% 12%;
+    --popover: 80 6% 84%;
+    --popover-foreground: 0 0% 15%;
 
     /* Primary: #c1ff72 */
     --primary: 84 100% 72%;
@@ -47,8 +47,8 @@
     --secondary: 100 64% 59%;
     --secondary-foreground: 0 0% 0%;
 
-    --muted: 80 8% 86%;
-    --muted-foreground: 0 0% 38%;
+    --muted: 80 5% 75%;
+    --muted-foreground: 0 0% 35%;
 
     /* Accent: #00bf63 */
     --accent: 151 100% 37%;
@@ -57,20 +57,20 @@
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 80 10% 80%;
-    --input: 80 8% 88%;
-    --ring: 84 100% 60%;
+    --border: 80 6% 72%;
+    --input: 80 6% 80%;
+    --ring: 84 100% 55%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 80 10% 92%;
-    --sidebar-foreground: 0 0% 12%;
+    --sidebar-background: 80 6% 85%;
+    --sidebar-foreground: 0 0% 15%;
     --sidebar-primary: 84 100% 72%;
     --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 151 100% 37%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 80 10% 84%;
-    --sidebar-ring: 84 100% 60%;
+    --sidebar-border: 80 6% 75%;
+    --sidebar-ring: 84 100% 55%;
 
     --chart-1: 84 100% 72%;
     --chart-2: 100 64% 59%;
@@ -139,9 +139,9 @@
     min-height: 100vh;
   }
 
-  /* Light mode - softer, easier on the eyes */
+  /* Light mode - warm gray, easier on the eyes */
   :root body {
-    background: linear-gradient(180deg, hsl(80 12% 93%) 0%, hsl(80 10% 90%) 100%);
+    background: linear-gradient(180deg, hsl(80 6% 86%) 0%, hsl(80 5% 82%) 100%);
   }
 
   /* Dark mode body background - slightly warmer */
