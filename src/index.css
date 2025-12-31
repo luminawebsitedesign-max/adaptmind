@@ -29,59 +29,59 @@
        Black: #000000
        White: #ffffff
     */
-    /* Light mode - comfortable tones, reduced glare */
-    --background: 80 8% 88%;
-    --foreground: 0 0% 15%;
+    /* Light mode - soft neutral tones, reduced saturation */
+    --background: 60 5% 94%;
+    --foreground: 0 0% 12%;
 
-    --card: 80 6% 82%;
-    --card-foreground: 0 0% 15%;
+    --card: 60 4% 96%;
+    --card-foreground: 0 0% 12%;
 
-    --popover: 80 6% 84%;
-    --popover-foreground: 0 0% 15%;
+    --popover: 60 4% 97%;
+    --popover-foreground: 0 0% 12%;
 
-    /* Primary: #c1ff72 */
-    --primary: 84 100% 72%;
-    --primary-foreground: 0 0% 0%;
+    /* Primary - toned down, less neon */
+    --primary: 84 55% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: #7ed957 */
-    --secondary: 100 64% 59%;
-    --secondary-foreground: 0 0% 0%;
+    /* Secondary - softer green */
+    --secondary: 100 40% 48%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 80 5% 75%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 60 4% 88%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Accent: #00bf63 */
-    --accent: 151 100% 37%;
+    /* Accent - less saturated */
+    --accent: 151 60% 32%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 50%;
+    --destructive: 0 60% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 80 6% 72%;
-    --input: 80 6% 80%;
-    --ring: 84 100% 55%;
+    --border: 60 5% 82%;
+    --input: 60 4% 90%;
+    --ring: 84 55% 40%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 80 6% 85%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 84 100% 72%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 151 100% 37%;
+    --sidebar-background: 60 4% 92%;
+    --sidebar-foreground: 0 0% 12%;
+    --sidebar-primary: 84 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 151 60% 32%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 80 6% 75%;
-    --sidebar-ring: 84 100% 55%;
+    --sidebar-border: 60 5% 85%;
+    --sidebar-ring: 84 55% 40%;
 
-    --chart-1: 84 100% 72%;
-    --chart-2: 100 64% 59%;
-    --chart-3: 151 100% 37%;
-    --chart-4: 120 50% 45%;
-    --chart-5: 150 60% 40%;
+    --chart-1: 84 55% 45%;
+    --chart-2: 100 40% 48%;
+    --chart-3: 151 60% 32%;
+    --chart-4: 120 35% 40%;
+    --chart-5: 150 45% 35%;
 
-    /* Brand specific */
-    --brand-primary: 84 100% 72%;
-    --brand-secondary: 100 64% 59%;
-    --brand-accent: 151 100% 37%;
+    /* Brand specific - softer in light mode */
+    --brand-primary: 84 55% 45%;
+    --brand-secondary: 100 40% 48%;
+    --brand-accent: 151 60% 32%;
 
     --font-sans: 'Lexend Deca', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Codec Pro', 'Lexend Deca', sans-serif;
@@ -139,9 +139,9 @@
     min-height: 100vh;
   }
 
-  /* Light mode - warm gray, easier on the eyes */
+  /* Light mode - soft neutral cream */
   :root body {
-    background: linear-gradient(180deg, hsl(80 6% 86%) 0%, hsl(80 5% 82%) 100%);
+    background: linear-gradient(180deg, hsl(60 5% 94%) 0%, hsl(60 4% 91%) 100%);
   }
 
   /* Dark mode body background - slightly warmer */
