@@ -138,7 +138,7 @@ export function CalendarView() {
           </div>
           
           {/* Calendar - Fills remaining space */}
-          <div className="flex-1 min-h-0 overflow-hidden select-none">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -160,28 +160,22 @@ export function CalendarView() {
               showOutsideDays={true}
               className={cn(
                 "w-full h-full",
-                // Prevent text selection and focus highlight on container
-                "select-none focus:outline-none focus-visible:outline-none [&_*]:select-none",
                 // Months container
                 "[&_.rdp-months]:h-full [&_.rdp-months]:w-full",
                 "[&_.rdp-month]:h-full [&_.rdp-month]:w-full [&_.rdp-month]:flex [&_.rdp-month]:flex-col",
-                // Hide ALL built-in caption/nav elements completely
-                "[&_.rdp-caption]:!hidden [&_.rdp-caption]:!invisible [&_.rdp-caption]:!h-0 [&_.rdp-caption]:!overflow-hidden",
-                "[&_.rdp-nav]:!hidden [&_.rdp-nav]:!invisible",
-                "[&_.rdp-nav_button]:!hidden",
-                // Table layout - no borders or lines
-                "[&_.rdp-table]:flex-1 [&_.rdp-table]:w-full [&_.rdp-table]:border-collapse [&_.rdp-table]:border-none",
-                "[&_.rdp-thead]:mb-2 [&_.rdp-thead]:border-none",
-                "[&_.rdp-head_row]:flex [&_.rdp-head_row]:w-full [&_.rdp-head_row]:border-none",
-                "[&_.rdp-head_cell]:flex-1 [&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:font-semibold [&_.rdp-head_cell]:text-xs [&_.rdp-head_cell]:md:text-sm [&_.rdp-head_cell]:pb-3 [&_.rdp-head_cell]:uppercase [&_.rdp-head_cell]:tracking-wide [&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:border-none",
-                // Body layout - no borders
-                "[&_.rdp-tbody]:flex [&_.rdp-tbody]:flex-col [&_.rdp-tbody]:flex-1 [&_.rdp-tbody]:gap-1 [&_.rdp-tbody]:border-none",
-                "[&_.rdp-row]:flex [&_.rdp-row]:flex-1 [&_.rdp-row]:gap-1 [&_.rdp-row]:border-none",
-                // Cell styling - explicitly remove all borders
-                "[&_.rdp-cell]:flex-1 [&_.rdp-cell]:p-0 [&_.rdp-cell]:border-0 [&_.rdp-cell]:border-none",
+                // Table layout
+                "[&_.rdp-table]:flex-1 [&_.rdp-table]:w-full",
+                "[&_.rdp-thead]:mb-2",
+                "[&_.rdp-head_row]:flex [&_.rdp-head_row]:w-full",
+                "[&_.rdp-head_cell]:flex-1 [&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:font-semibold [&_.rdp-head_cell]:text-xs [&_.rdp-head_cell]:md:text-sm [&_.rdp-head_cell]:pb-3 [&_.rdp-head_cell]:uppercase [&_.rdp-head_cell]:tracking-wide [&_.rdp-head_cell]:text-center",
+                // Body layout
+                "[&_.rdp-tbody]:flex [&_.rdp-tbody]:flex-col [&_.rdp-tbody]:flex-1 [&_.rdp-tbody]:gap-1",
+                "[&_.rdp-row]:flex [&_.rdp-row]:flex-1 [&_.rdp-row]:gap-1",
+                // Cell styling
+                "[&_.rdp-cell]:flex-1 [&_.rdp-cell]:p-0",
                 // Day button styling
                 "[&_.rdp-button]:w-full [&_.rdp-button]:h-full [&_.rdp-button]:rounded-xl [&_.rdp-button]:min-h-[44px] [&_.rdp-button]:md:min-h-[52px]",
-                "[&_.rdp-button]:text-sm [&_.rdp-button]:md:text-base [&_.rdp-button]:font-medium [&_.rdp-button]:border-none",
+                "[&_.rdp-button]:text-sm [&_.rdp-button]:md:text-base [&_.rdp-button]:font-medium",
                 "[&_.rdp-button]:hover:bg-primary/15 [&_.rdp-button]:transition-colors",
                 "[&_.rdp-button]:focus:outline-none [&_.rdp-button]:focus-visible:ring-2 [&_.rdp-button]:focus-visible:ring-primary/50 [&_.rdp-button]:focus-visible:ring-offset-0",
                 // Selected day
