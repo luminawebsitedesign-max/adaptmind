@@ -58,7 +58,6 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          toast.success('Welcome back!');
           navigate('/');
         }
       } else {
@@ -70,7 +69,6 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created! Welcome to AdaptMind.');
           navigate('/');
         }
       }

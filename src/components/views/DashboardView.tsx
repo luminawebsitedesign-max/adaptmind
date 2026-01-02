@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { CheckSquare, Target, Repeat, TrendingUp, Sparkles, Calendar, Zap, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckSquare, Target, Repeat, TrendingUp, Sparkles, Calendar, Zap, ArrowRight, ChevronLeft, ChevronRight, Lightbulb, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks } from "date-fns";
 import { useState, useMemo } from "react";
@@ -50,13 +50,89 @@ export function DashboardView() {
     });
   }, [weekStart, todoLists, habits, goals]);
 
+  // Getting started checklist items
+  const gettingStartedItems = [
+    { 
+      id: 'task', 
+      label: 'Create your first task', 
+      completed: totalTasks > 0,
+      action: () => setCurrentView("todos")
+    },
+    { 
+      id: 'habit', 
+      label: 'Add a habit (optional)', 
+      completed: habits.length > 0,
+      action: () => setCurrentView("habits")
+    },
+    { 
+      id: 'calendar', 
+      label: 'Explore the calendar', 
+      completed: false, // This is always available to explore
+      action: () => setCurrentView("calendar")
+    },
+  ];
+
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Onboarding Panel */}
+      <div className="glass rounded-2xl p-6 border border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+            <Lightbulb className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div className="flex-1 space-y-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-display font-bold text-gradient-brand">
+                Welcome to AdaptMind
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm md:text-base">
+                AdaptMind is your intelligent productivity companion. It helps you manage tasks, 
+                build lasting habits, and achieve your goals — all in one place. The AI assistant 
+                is here to help you stay focused and make progress every day.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground/80">Getting Started</h3>
+              <div className="space-y-2">
+                {gettingStartedItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={item.action}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left",
+                      "hover:bg-primary/10 border border-transparent hover:border-primary/20",
+                      item.completed && "opacity-60"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      item.completed 
+                        ? "bg-primary border-primary" 
+                        : "border-muted-foreground/40"
+                    )}>
+                      {item.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                    </div>
+                    <span className={cn(
+                      "text-sm",
+                      item.completed && "line-through text-muted-foreground"
+                    )}>
+                      {item.label}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">
-            Welcome Back
+            Your Dashboard
           </h1>
           <p className="text-muted-foreground mt-2 text-sm md:text-base">
             {hasData 
