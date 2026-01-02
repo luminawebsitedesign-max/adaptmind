@@ -192,15 +192,15 @@ export function ProfileView() {
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-sm font-medium">Dark Mode</Label>
+              <Label className="text-sm font-medium">Light Mode</Label>
               <p className="text-xs text-muted-foreground">
-                Toggle between light and dark themes
+                Enable light theme (Dark Mode is default)
               </p>
             </div>
             <Switch
-              checked={mounted && theme === 'dark'}
-              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-              aria-label="Toggle dark mode"
+              checked={mounted && theme === 'light'}
+              onCheckedChange={(checked) => setTheme(checked ? 'light' : 'dark')}
+              aria-label="Toggle light mode"
             />
           </div>
         </CardContent>

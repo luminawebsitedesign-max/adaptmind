@@ -48,7 +48,7 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="adaptmind-theme" forcedTheme={typeof window !== 'undefined' && !localStorage.getItem('adaptmind-theme') ? 'dark' : undefined}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="adaptmind-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
