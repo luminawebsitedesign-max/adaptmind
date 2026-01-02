@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { WelcomeScreen } from './WelcomeScreen';
+import { OnboardingModal } from './OnboardingModal';
 
 interface OnboardingTourProps {
   onComplete: () => void;
@@ -13,5 +13,5 @@ export function OnboardingTour({ onComplete }: OnboardingTourProps) {
     onComplete();
   };
 
-  return <WelcomeScreen onContinue={handleComplete} onSkip={handleComplete} />;
+  return <OnboardingModal onComplete={handleComplete} />;
 }
