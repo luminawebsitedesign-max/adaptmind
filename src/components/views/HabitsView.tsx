@@ -354,8 +354,11 @@ export function HabitsView() {
               <Plus className="w-8 h-8 text-accent" />
             </div>
             <h3 className="font-semibold text-lg mb-2">No habits yet</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-2">
               Start building your daily routine
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Habits help you stay consistent. Track things like exercise, reading, or meditation.
             </p>
             <Button onClick={() => setIsAddingHabit(true)} className="gap-2 glow-primary bg-accent hover:bg-accent/90">
               <Plus className="w-4 h-4" />

@@ -257,8 +257,11 @@ export function GoalsView() {
             <Target className="w-8 h-8 text-secondary" />
           </div>
           <h3 className="font-semibold text-lg mb-2">No goals yet</h3>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-2">
             Set your first goal to start tracking your progress
+          </p>
+          <p className="text-xs text-muted-foreground mb-4">
+            Goals help you focus on what matters. Break them into milestones for easier tracking.
           </p>
           <Button onClick={() => setIsAddingGoal(true)} className="gap-2 glow-primary bg-secondary hover:bg-secondary/90">
             <Plus className="w-4 h-4" />
@@ -314,7 +317,21 @@ function GoalSection({
   onDeleteGoal: (id: string, title: string) => void;
   onEditGoal: (goal: Goal) => void;
 }) {
-  if (goals.length === 0) return null;
+  // Show an empty state hint when this category has no goals but others do
+  if (goals.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        <div className="glass rounded-xl p-6 text-center text-muted-foreground border-dashed border-2 border-border/50">
+          <p className="text-sm">No {title.toLowerCase()} yet</p>
+          <p className="text-xs mt-1">Create a goal with the "{title.includes("Short") ? "Short-Term" : title.includes("Medium") ? "Medium-Term" : "Custom"}" timeframe to see it here</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

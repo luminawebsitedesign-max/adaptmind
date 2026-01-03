@@ -305,14 +305,26 @@ export function CalendarView() {
                 </div>
               )}
 
-              {/* Empty state */}
+              {/* Empty state for selected day */}
               {tasksDueOnDate.length === 0 && 
                goalsWithDeadlines.filter(g => g.dueOnDate).length === 0 && 
+               habitsOnDate.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CalendarIcon className="w-10 h-10 mx-auto mb-3 opacity-40 text-primary" />
+                  <p className="text-sm font-medium">Nothing scheduled</p>
+                  <p className="text-xs mt-1">Add tasks with deadlines, set goal due dates, or track habits to see activity here</p>
+                </div>
+              )}
+
+              {/* Empty state when no habits exist */}
+              {tasksDueOnDate.length === 0 && 
+               goalsWithDeadlines.filter(g => g.dueOnDate).length === 0 && 
+               habitsOnDate.length > 0 && 
                habitsOnDate.every(h => !h.completedOnDate) && (
                 <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="w-10 h-10 mx-auto mb-3 opacity-40 text-primary" />
                   <p className="text-sm font-medium">No events on this day</p>
-                  <p className="text-xs mt-1">Add tasks, goals, or habits to see them here</p>
+                  <p className="text-xs mt-1">Complete your habits or add tasks with deadlines</p>
                 </div>
               )}
             </div>
