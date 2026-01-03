@@ -340,7 +340,7 @@ function GoalSection({
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-stagger">
         {goals.map((goal) => {
           const completedMilestones = goal.milestones.filter((m) => m.completed).length;
           const totalMilestones = goal.milestones.length;
