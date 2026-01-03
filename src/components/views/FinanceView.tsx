@@ -655,8 +655,11 @@ export function FinanceView() {
             <Wallet className="w-8 h-8 text-secondary" />
           </div>
           <h3 className="font-semibold text-lg mb-2">No portfolios yet</h3>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-2">
             Create your first portfolio to start tracking your finances
+          </p>
+          <p className="text-xs text-muted-foreground mb-4">
+            Portfolios help you organize different accounts like savings, investments, or personal spending.
           </p>
           <Button onClick={() => setIsAddingPortfolio(true)} className="gap-2 glow-primary bg-secondary hover:bg-secondary/90">
             <Plus className="w-4 h-4" />
