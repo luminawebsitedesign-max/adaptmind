@@ -1,14 +1,24 @@
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { CheckSquare, Target, Repeat, TrendingUp, Sparkles, Calendar, Zap, ArrowRight, ChevronLeft, ChevronRight, Lightbulb, Check } from "lucide-react";
+import { CheckSquare, Target, Repeat, TrendingUp, Sparkles, Calendar, Zap, ArrowRight, ChevronLeft, ChevronRight, Lightbulb, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks } from "date-fns";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+
+const ONBOARDING_DISMISSED_KEY = 'adaptmind_onboarding_dismissed';
 
 export function DashboardView() {
   const { todoLists, goals, habits, setCurrentView } = useAppStore();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return localStorage.getItem(ONBOARDING_DISMISSED_KEY) !== 'true';
+  });
+
+  const handleDismissOnboarding = () => {
+    localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+    setShowOnboarding(false);
+  };
 
   const totalTasks = todoLists.reduce((acc, list) => acc + list.items.length, 0);
   const completedTasks = todoLists.reduce(
@@ -50,83 +60,59 @@ export function DashboardView() {
     });
   }, [weekStart, todoLists, habits, goals]);
 
-  // Getting started checklist items
-  const gettingStartedItems = [
-    { 
-      id: 'task', 
-      label: 'Create your first task', 
-      completed: totalTasks > 0,
-      action: () => setCurrentView("todos")
-    },
-    { 
-      id: 'habit', 
-      label: 'Add a habit (optional)', 
-      completed: habits.length > 0,
-      action: () => setCurrentView("habits")
-    },
-    { 
-      id: 'calendar', 
-      label: 'Explore the calendar', 
-      completed: false, // This is always available to explore
-      action: () => setCurrentView("calendar")
-    },
-  ];
-
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Onboarding Panel */}
-      <div className="glass rounded-2xl p-6 border border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
-            <Lightbulb className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div className="flex-1 space-y-4">
-            <div>
-              <h2 className="text-xl md:text-2xl font-display font-bold text-gradient-brand">
-                Welcome to AdaptMind
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm md:text-base">
-                AdaptMind is your intelligent productivity companion. It helps you manage tasks, 
-                build lasting habits, and achieve your goals — all in one place. The AI assistant 
-                is here to help you stay focused and make progress every day.
-              </p>
+      {showOnboarding && (
+        <div className="glass rounded-2xl p-6 border border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+              <Lightbulb className="w-6 h-6 text-primary-foreground" />
             </div>
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground/80">Getting Started</h3>
-              <div className="space-y-2">
-                {gettingStartedItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={item.action}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left",
-                      "hover:bg-primary/10 border border-transparent hover:border-primary/20",
-                      item.completed && "opacity-60"
-                    )}
+            <div className="flex-1 space-y-4">
+              <div>
+                <div className="flex items-start justify-between gap-4">
+                  <h2 className="text-xl md:text-2xl font-display font-bold text-gradient-brand">
+                    Welcome to AdaptMind
+                  </h2>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                    onClick={handleDismissOnboarding}
+                    aria-label="Dismiss onboarding"
                   >
-                    <div className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-                      item.completed 
-                        ? "bg-primary border-primary" 
-                        : "border-muted-foreground/40"
-                    )}>
-                      {item.completed && <Check className="w-3 h-3 text-primary-foreground" />}
-                    </div>
-                    <span className={cn(
-                      "text-sm",
-                      item.completed && "line-through text-muted-foreground"
-                    )}>
-                      {item.label}
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100" />
-                  </button>
-                ))}
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-muted-foreground mt-2 text-sm md:text-base">
+                  AdaptMind is your intelligent productivity companion. It helps you manage tasks, 
+                  build lasting habits, and achieve your goals — all in one place. The AI assistant 
+                  is here to help you stay focused and make progress every day.
+                </p>
               </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground/80">Getting Started</h3>
+                <ul className="space-y-1.5 text-sm text-muted-foreground list-disc list-inside pl-1">
+                  <li>Create your first task in the Tasks section</li>
+                  <li>Add a habit to build daily routines</li>
+                  <li>Explore the calendar to see your schedule</li>
+                </ul>
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDismissOnboarding}
+                className="mt-2"
+              >
+                Got it, let's go!
+              </Button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
