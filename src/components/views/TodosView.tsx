@@ -360,35 +360,37 @@ export function TodosView() {
                           </Button>
                         </div>
                       ) : (
-                        list.items.map((item, index) => (
-                          <Draggable key={item.id} draggableId={item.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                className={cn(
-                                  "transition-shadow",
-                                  snapshot.isDragging && "shadow-lg ring-2 ring-primary/50"
-                                )}
-                              >
-                                <TaskItem
-                                  item={item}
-                                  listId={list.id}
-                                  onToggle={() => handleToggleItem(list.id, item)}
-                                  onDelete={() => setDeleteItemConfirm({ 
-                                    open: true, 
-                                    listId: list.id, 
-                                    itemId: item.id, 
-                                    itemTitle: item.title 
-                                  })}
-                                  onEdit={() => setEditingTask({ task: item, listId: list.id })}
-                                  priorityColors={priorityColors}
-                                  dragHandleProps={provided.dragHandleProps}
-                                />
-                              </div>
-                            )}
-                          </Draggable>
-                        ))
+                        <div className="animate-stagger space-y-2">
+                          {list.items.map((item, index) => (
+                            <Draggable key={item.id} draggableId={item.id} index={index}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={cn(
+                                    "transition-shadow",
+                                    snapshot.isDragging && "shadow-lg ring-2 ring-primary/50"
+                                  )}
+                                >
+                                  <TaskItem
+                                    item={item}
+                                    listId={list.id}
+                                    onToggle={() => handleToggleItem(list.id, item)}
+                                    onDelete={() => setDeleteItemConfirm({ 
+                                      open: true, 
+                                      listId: list.id, 
+                                      itemId: item.id, 
+                                      itemTitle: item.title 
+                                    })}
+                                    onEdit={() => setEditingTask({ task: item, listId: list.id })}
+                                    priorityColors={priorityColors}
+                                    dragHandleProps={provided.dragHandleProps}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                        </div>
                       )}
                       {provided.placeholder}
                     </div>

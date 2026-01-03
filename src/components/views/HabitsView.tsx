@@ -243,6 +243,7 @@ export function HabitsView() {
         </div>
 
         {/* Habit Rows */}
+        <div className="animate-stagger">
         {habits.map((habit) => (
           <div
             key={habit.id}
@@ -347,7 +348,7 @@ export function HabitsView() {
             </div>
           </div>
         ))}
-
+        </div>
         {habits.length === 0 && (
           <div className="p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
