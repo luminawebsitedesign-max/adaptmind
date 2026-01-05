@@ -117,9 +117,14 @@ export function DashboardView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">
-            Your Dashboard
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">
+              Your Dashboard
+            </h1>
+            <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-secondary/20 text-secondary border border-secondary/30">
+              Beta
+            </span>
+          </div>
           <p className="text-muted-foreground mt-2 text-sm md:text-base">
             {hasData 
               ? "Here's your productivity overview for today"

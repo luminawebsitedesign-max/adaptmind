@@ -100,14 +100,24 @@ export function GoalsView() {
   const mediumTermGoals = goals.filter((g) => g.category === "medium");
   const customGoals = goals.filter((g) => g.category === "custom");
 
+  // Beta badge component
+  const BetaBadge = () => (
+    <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-secondary/20 text-secondary border border-secondary/30">
+      Beta
+    </span>
+  );
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold text-gradient-brand">
-            Goals
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-display font-bold text-gradient-brand">
+              Goals
+            </h1>
+            <BetaBadge />
+          </div>
           <p className="text-muted-foreground mt-1">
             Track your progress toward meaningful objectives
           </p>

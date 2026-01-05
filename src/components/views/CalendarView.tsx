@@ -82,7 +82,12 @@ export function CalendarView() {
     <div className="h-full flex flex-col animate-fade-in overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
-        <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">Calendar</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-gradient-brand">Calendar</h1>
+          <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-secondary/20 text-secondary border border-secondary/30">
+            Beta
+          </span>
+        </div>
         <div className="flex items-center gap-2">
           {!isGoogleConnected && (
             <Button 
