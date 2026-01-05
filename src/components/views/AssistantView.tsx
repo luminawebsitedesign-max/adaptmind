@@ -242,7 +242,7 @@ export function AssistantView() {
       setMessages([{
         id: '1',
         role: 'assistant',
-        content: "Hello! I'm your Adaptmind AI assistant. I can help you manage your tasks, goals, and habits. Try asking me to organize your tasks or create a weekly plan!",
+        content: "Hello! I'm your AdaptMind AI assistant (Beta). I can help you plan, organize, and suggest tasks, goals, and habits. Note: I'm here to guide you — automatic creation is coming soon! Try asking me to organize your tasks or create a weekly plan.",
         timestamp: new Date(),
       }]);
     }
@@ -256,8 +256,13 @@ export function AssistantView() {
             <img src={adaptmindIconLight} alt="AdaptMind AI" className="w-8 h-8 object-contain" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-gradient-brand">AI Assistant</h1>
-            <p className="text-sm text-muted-foreground">Your intelligent productivity copilot</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-display font-bold text-gradient-brand">AI Assistant</h1>
+              <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-secondary/20 text-secondary border border-secondary/30">
+                Beta
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">Helps you plan, organize &amp; suggest — automation coming soon</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => setClearConfirm(true)} className="text-muted-foreground hover:text-foreground">
