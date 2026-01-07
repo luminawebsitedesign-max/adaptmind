@@ -57,6 +57,10 @@ export function CalendarView() {
   }, [tasksWithDeadlines, selectedDate]);
 
   // Goals w/ derived local-midnight start/end + range dates
+  // RULE: duration is inclusive of both start and end days.
+  // A 7-day goal starting Jan 7 highlights Jan 7 through Jan 13 (7 days).
+  // But user prefers: 7-day goal = Jan 7-14 (includes end date as "day 7").
+  // So we use: end = start + duration (not duration-1).
   const goalsWithDates = useMemo(() => {
     const today = toLocalMidnight(new Date());
 
@@ -71,11 +75,14 @@ export function CalendarView() {
       let endInclusive: Date | null = g.deadline ? toLocalMidnight(g.deadline) : null;
       if (!endInclusive) {
         if (g.category === "short") {
-          endInclusive = addDays(start, 6);
+          // Short-term = 7-day, ends on day 7 (start + 7 days total, i.e. start is day 0)
+          endInclusive = addDays(start, 7);
         } else if (g.category === "medium") {
-          // Approx month: 30 days for highlighting consistency
-          endInclusive = addDays(start, 29);
+          // Medium-term = ~1 month = 30 days
+          endInclusive = addDays(start, 30);
         } else if (g.category === "custom" && g.customDuration) {
+          // Custom: N-day goal, highlights N days starting from start
+          // e.g. 7-day goal from Jan 7 highlights Jan 7-13 (7 days)
           endInclusive = addDays(start, Math.max(1, g.customDuration) - 1);
         }
       }

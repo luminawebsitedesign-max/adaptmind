@@ -27,12 +27,16 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         row: "flex w-full flex-1 border-0",
         cell: cn(
           "flex-1 text-center text-sm p-0.5 relative border-0",
-          "focus-within:relative focus-within:z-20"
+          "focus-within:relative focus-within:z-20",
+          // Disable range selection hover styles completely
+          "[&:has([aria-selected])]:bg-transparent"
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "w-full h-full p-0 font-normal",
-          "focus:outline-none focus-visible:outline-none focus:ring-0"
+          "focus:outline-none focus-visible:outline-none focus:ring-0",
+          // Prevent hover from affecting siblings
+          "hover:bg-accent hover:text-accent-foreground"
         ),
         // Range-related classes are intentionally disabled (single-date calendar only)
         day_range_end: "",

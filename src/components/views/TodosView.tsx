@@ -52,6 +52,7 @@ export function TodosView() {
   const {
     todoLists,
     addTodoList,
+    updateTodoList,
     deleteTodoList,
     addTodoItem,
     updateTodoItem,
@@ -283,14 +284,12 @@ export function TodosView() {
                   ) : (
                     <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform" />
                   )}
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="text-2xl cursor-help">{list.icon}</span>
-                      </TooltipTrigger>
-                      <TooltipContent>List category icon</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <IconPicker
+                    value={list.icon}
+                    onChange={(icon) => updateTodoList(list.id, { icon })}
+                    className="w-10 h-10 text-2xl"
+                    ariaLabel="Change list icon"
+                  />
                   <h3 className="font-semibold text-lg">{list.name}</h3>
                   {list.items.length > 0 && (
                     <TooltipProvider>
