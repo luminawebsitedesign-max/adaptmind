@@ -21,8 +21,13 @@ export type Database = {
           display_name: string | null
           id: string
           onboarding_completed: boolean
+          preferred_language: string | null
+          primary_use: string | null
           updated_at: string
           user_id: string
+          user_notes: string | null
+          welcome_form_completed: boolean
+          welcome_tutorial_completed: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -30,8 +35,13 @@ export type Database = {
           display_name?: string | null
           id?: string
           onboarding_completed?: boolean
+          preferred_language?: string | null
+          primary_use?: string | null
           updated_at?: string
           user_id: string
+          user_notes?: string | null
+          welcome_form_completed?: boolean
+          welcome_tutorial_completed?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -39,8 +49,13 @@ export type Database = {
           display_name?: string | null
           id?: string
           onboarding_completed?: boolean
+          preferred_language?: string | null
+          primary_use?: string | null
           updated_at?: string
           user_id?: string
+          user_notes?: string | null
+          welcome_form_completed?: boolean
+          welcome_tutorial_completed?: boolean
         }
         Relationships: []
       }

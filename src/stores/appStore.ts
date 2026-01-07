@@ -39,6 +39,10 @@ interface AppState {
   // Sidebar
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
+  
+  // Manual Tutorial
+  showManualTutorial: boolean;
+  setShowManualTutorial: (show: boolean) => void;
 
   // Finance
   portfolios: Portfolio[];
@@ -225,6 +229,10 @@ export const useAppStore = create<AppState>()(
       // Sidebar
       sidebarCollapsed: false,
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      
+      // Manual Tutorial
+      showManualTutorial: false,
+      setShowManualTutorial: (show) => set({ showManualTutorial: show }),
 
       // Finance
       portfolios: [],
