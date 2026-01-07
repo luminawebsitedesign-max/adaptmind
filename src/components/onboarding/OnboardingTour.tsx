@@ -1,17 +1,12 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { OnboardingModal } from './OnboardingModal';
+import { OnboardingFlow } from './OnboardingFlow';
 
 interface OnboardingTourProps {
   onComplete: () => void;
 }
 
+// This component is kept for backwards compatibility
+// It now delegates to the new OnboardingFlow
 export function OnboardingTour({ onComplete }: OnboardingTourProps) {
-  const { completeOnboarding } = useAuth();
-
-  const handleComplete = () => {
-    completeOnboarding();
-    onComplete();
-  };
-
-  return <OnboardingModal onComplete={handleComplete} />;
+  return <OnboardingFlow onComplete={onComplete} />;
 }

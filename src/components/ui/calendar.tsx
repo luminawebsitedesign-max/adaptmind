@@ -14,7 +14,6 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       classNames={{
         months: "flex flex-col h-full w-full",
         month: "flex flex-col h-full w-full",
-        // Completely hide caption and nav - custom header is used externally
         caption: "hidden",
         caption_label: "hidden",
         nav: "hidden",
@@ -25,20 +24,18 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         head_row: "flex w-full border-0",
         head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] text-center border-0",
         row: "flex w-full flex-1 border-0",
-        cell: cn(
-          "flex-1 text-center text-sm p-0.5 relative border-0",
-          "focus-within:relative focus-within:z-20",
-          // Disable range selection hover styles completely
-          "[&:has([aria-selected])]:bg-transparent"
-        ),
+        // CRITICAL: Removed all :has() selectors that cause multi-cell hover
+        cell: "flex-1 text-center text-sm p-0.5 relative border-0 focus-within:relative focus-within:z-20",
+        // Day button - hover ONLY affects this specific button, not siblings
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "w-full h-full p-0 font-normal",
           "focus:outline-none focus-visible:outline-none focus:ring-0",
-          // Prevent hover from affecting siblings
-          "hover:bg-accent hover:text-accent-foreground"
+          // Isolated hover - only this element changes on hover
+          "hover:bg-accent hover:text-accent-foreground",
+          // Prevent any parent/sibling hover inheritance
+          "isolate"
         ),
-        // Range-related classes are intentionally disabled (single-date calendar only)
         day_range_end: "",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",

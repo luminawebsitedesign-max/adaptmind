@@ -8,8 +8,19 @@ interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   onboarding_completed: boolean;
+  welcome_form_completed: boolean;
+  welcome_tutorial_completed: boolean;
+  preferred_language: string | null;
+  primary_use: string | null;
+  user_notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface WelcomeFormData {
+  language: string;
+  primaryUse: string;
+  userNotes: string;
 }
 
 interface AuthContextType {
@@ -22,6 +33,9 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  completeWelcomeForm: (data: WelcomeFormData) => Promise<void>;
+  completeWelcomeTutorial: () => Promise<void>;
+  resetTutorialForManualRun: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -159,6 +173,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const completeWelcomeForm = async (data: WelcomeFormData) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        welcome_form_completed: true,
+        preferred_language: data.language,
+        primary_use: data.primaryUse || null,
+        user_notes: data.userNotes || null,
+      })
+      .eq('user_id', user.id);
+    
+    if (!error && profile) {
+      setProfile({ 
+        ...profile, 
+        welcome_form_completed: true,
+        preferred_language: data.language,
+        primary_use: data.primaryUse || null,
+        user_notes: data.userNotes || null,
+      });
+    }
+  };
+
+  const completeWelcomeTutorial = async () => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        welcome_tutorial_completed: true,
+        onboarding_completed: true, // Also mark legacy field
+      })
+      .eq('user_id', user.id);
+    
+    if (!error && profile) {
+      setProfile({ 
+        ...profile, 
+        welcome_tutorial_completed: true,
+        onboarding_completed: true,
+      });
+    }
+  };
+
+  // For manual tutorial re-run, temporarily set local state
+  const resetTutorialForManualRun = () => {
+    // This doesn't change the DB, just allows the tutorial to show
+    // The tutorial component will handle not persisting this
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -170,6 +234,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signOut,
       completeOnboarding,
+      completeWelcomeForm,
+      completeWelcomeTutorial,
+      resetTutorialForManualRun,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
-import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { OnboardingFlow, StandaloneTutorial } from "@/components/onboarding/OnboardingFlow";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Footer } from "@/components/layout/Footer";
 import { DashboardView } from "@/components/views/DashboardView";
@@ -16,11 +16,19 @@ import { ExportDataView } from "@/components/views/ExportDataView";
 import { FinanceView } from "@/components/views/FinanceView";
 
 const Index = () => {
-  const { currentView, sidebarCollapsed } = useAppStore();
+  const { currentView, sidebarCollapsed, showManualTutorial, setShowManualTutorial } = useAppStore();
   const { profile } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(
-    () => profile?.onboarding_completed === false
-  );
+  
+  // Determine if we need to show onboarding
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  useEffect(() => {
+    if (profile) {
+      // Show onboarding if either welcome form or tutorial is not completed
+      const needsOnboarding = !profile.welcome_form_completed || !profile.welcome_tutorial_completed;
+      setShowOnboarding(needsOnboarding);
+    }
+  }, [profile]);
 
   const renderView = () => {
     switch (currentView) {
@@ -64,8 +72,14 @@ const Index = () => {
 
       <Footer />
 
+      {/* First-time onboarding flow */}
       {showOnboarding && (
-        <OnboardingTour onComplete={() => setShowOnboarding(false)} />
+        <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
+      )}
+
+      {/* Manual tutorial re-run from settings */}
+      {showManualTutorial && (
+        <StandaloneTutorial onComplete={() => setShowManualTutorial(false)} />
       )}
     </div>
   );

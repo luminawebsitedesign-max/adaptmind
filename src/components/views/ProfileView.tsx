@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "next-themes";
+import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { User, Save, Sparkles, ChevronRight, Info, Shield, Moon, Sun, Calendar, ExternalLink } from "lucide-react";
+import { User, Save, Sparkles, ChevronRight, Info, Shield, Moon, Sun, Calendar, ExternalLink, HelpCircle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -22,6 +23,7 @@ const MAX_PERSONALITY_LENGTH = 1000;
 export function ProfileView() {
   const { user, profile } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { setShowManualTutorial } = useAppStore();
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
   const [aiPersonality, setAiPersonality] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -250,6 +252,40 @@ export function ProfileView() {
           <p className="text-xs text-muted-foreground text-center">
             More integrations coming soon
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Help Card */}
+      <Card className="glass-strong border-border/40">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <HelpCircle className="w-5 h-5 text-primary" />
+            Help
+          </CardTitle>
+          <CardDescription>
+            Resources and tutorials to help you get the most out of AdaptMind
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Welcome Tutorial</p>
+                <p className="text-xs text-muted-foreground">Learn how to use AdaptMind features</p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-primary/30 hover:border-primary hover:bg-primary/10"
+              onClick={() => setShowManualTutorial(true)}
+            >
+              Run Tutorial
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
