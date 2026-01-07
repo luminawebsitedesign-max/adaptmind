@@ -7,6 +7,7 @@ import {
   Target,
   Repeat,
   Calendar,
+  Wallet,
   Bot,
   Rocket,
   Sparkles
@@ -99,6 +100,21 @@ const TUTORIAL_STEPS = [
     ),
   },
   {
+    id: 'finance',
+    title: 'Finance',
+    description: 'Track your finances and portfolios.',
+    icon: Wallet,
+    color: 'from-secondary to-primary',
+    content: (
+      <div className="space-y-3 text-sm text-muted-foreground">
+        <p>• Create portfolios to organize your assets</p>
+        <p>• Track assets and categories</p>
+        <p>• Monitor progress over time</p>
+        <p>• Finance integrates with your productivity system</p>
+      </div>
+    ),
+  },
+  {
     id: 'ai',
     title: 'AI Assistant',
     description: 'Get personalized help and suggestions.',
@@ -159,18 +175,18 @@ export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-lg mx-4">
-        {/* Skip button */}
-        <button
-          onClick={onSkip}
-          className="absolute -top-10 right-0 text-muted-foreground hover:text-foreground text-sm transition-colors"
-        >
-          Skip Tutorial
-        </button>
-
         {/* Card */}
-        <div className="glass-strong rounded-3xl p-8 md:p-10 relative overflow-hidden">
+        <div className="glass-strong rounded-3xl p-6 md:p-10 relative overflow-hidden max-h-[calc(100vh-3rem)] flex flex-col">
           {/* Background glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+
+          {/* Skip button */}
+          <button
+            onClick={onSkip}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm transition-colors"
+          >
+            Skip Tutorial
+          </button>
           
           {/* Progress indicator */}
           <div className="flex justify-center gap-1.5 mb-6 relative">
@@ -192,7 +208,7 @@ export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
           </div>
 
           {/* Step Content */}
-          <div className="relative min-h-[200px] flex flex-col">
+          <div className="relative min-h-0 flex-1 flex flex-col overflow-y-auto">
             <div className="text-center mb-4">
               <h2 className="text-2xl font-display font-bold mb-2">
                 {currentStep.title}
@@ -208,7 +224,7 @@ export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-6 relative">
+          <div className="flex items-center justify-between mt-6 relative shrink-0">
             <Button
               variant="ghost"
               onClick={handleBack}
