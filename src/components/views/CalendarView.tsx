@@ -2,13 +2,28 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Calendar } from "@/components/ui/calendar";
-import { format, isSameDay, addMonths, subMonths } from "date-fns";
+import { format, isSameDay, addMonths, subMonths, startOfDay, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle2, Target, Repeat, Calendar as CalendarIcon, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+
+// Helper to normalize dates to avoid timezone issues
+const normalizeDate = (date: Date | string): Date => {
+  if (typeof date === 'string') {
+    // If it's an ISO string with date only (YYYY-MM-DD), parse it as local
+    if (date.length === 10 && date.includes('-')) {
+      const [year, month, day] = date.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    // Otherwise parse as ISO and use start of day in local timezone
+    const parsed = new Date(date);
+    return startOfDay(parsed);
+  }
+  return startOfDay(date);
+};
 
 export function CalendarView() {
   const { todoLists, goals, habits } = useAppStore();
@@ -45,45 +60,53 @@ export function CalendarView() {
 
   // Get goals with deadlines or that should appear on calendar
   const goalsWithDeadlines = useMemo(() => {
+    const today = normalizeDate(new Date());
+    
     return goals.map(g => {
-      // If goal has a deadline, check if it's on the selected date
-      const deadline = g.deadline ? new Date(g.deadline) : null;
-      const startDate = g.startDate ? new Date(g.startDate) : (g.createdAt ? new Date(g.createdAt) : null);
+      // Normalize all dates to avoid timezone issues
+      const deadline = g.deadline ? normalizeDate(g.deadline) : null;
+      const startDate = g.startDate 
+        ? normalizeDate(g.startDate) 
+        : (g.createdAt ? normalizeDate(g.createdAt) : today);
       
       // For goals without a deadline, calculate one based on category
       let effectiveDeadline = deadline;
-      if (!effectiveDeadline && startDate) {
+      if (!effectiveDeadline) {
         if (g.category === 'short') {
           effectiveDeadline = new Date(startDate);
           effectiveDeadline.setDate(effectiveDeadline.getDate() + 7);
         } else if (g.category === 'medium') {
           effectiveDeadline = new Date(startDate);
           effectiveDeadline.setMonth(effectiveDeadline.getMonth() + 1);
+        } else if (g.category === 'custom' && g.customDuration) {
+          effectiveDeadline = new Date(startDate);
+          effectiveDeadline.setDate(effectiveDeadline.getDate() + g.customDuration);
         }
       }
+      
+      const normalizedSelected = normalizeDate(selectedDate);
       
       return {
         ...g,
         effectiveDeadline,
-        startDate: startDate || new Date(),
-        dueOnDate: effectiveDeadline && isSameDay(effectiveDeadline, selectedDate),
-        startsOnDate: startDate && isSameDay(startDate, selectedDate),
+        startDate,
+        dueOnDate: effectiveDeadline && isSameDay(effectiveDeadline, normalizedSelected),
+        startsOnDate: isSameDay(startDate, normalizedSelected),
       };
     });
   }, [goals, selectedDate]);
 
   // Modifier for days with events
   const modifiers = useMemo(() => {
-    const taskDates = tasksWithDeadlines.map(t => new Date(t.deadline!));
-    const habitDates = habits.flatMap(h => h.completedDates.map(d => new Date(d)));
+    const taskDates = tasksWithDeadlines.map(t => normalizeDate(t.deadline!));
+    const habitDates = habits.flatMap(h => h.completedDates.map(d => normalizeDate(d)));
     
-    // Get all goal dates (both deadlines and start dates)
+    // Get all goal dates (both deadlines and start dates) - normalized
     const goalDeadlineDates = goalsWithDeadlines
       .filter(g => g.effectiveDeadline)
-      .map(g => new Date(g.effectiveDeadline!));
+      .map(g => normalizeDate(g.effectiveDeadline!));
     const goalStartDates = goalsWithDeadlines
-      .filter(g => g.startDate)
-      .map(g => new Date(g.startDate));
+      .map(g => normalizeDate(g.startDate));
     
     return {
       hasTask: taskDates,
