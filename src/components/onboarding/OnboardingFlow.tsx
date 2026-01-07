@@ -28,23 +28,45 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   }, [profile, onComplete]);
 
   const handleFormComplete = async (data: WelcomeFormData) => {
-    await completeWelcomeForm(data);
-    setCurrentStep('tutorial');
+    try {
+      await completeWelcomeForm(data);
+      // Only move to tutorial after form is saved
+      setCurrentStep('tutorial');
+    } catch (error) {
+      console.error('Error completing welcome form:', error);
+      // Still proceed to tutorial even if save fails
+      setCurrentStep('tutorial');
+    }
   };
 
   const handleFormSkip = async () => {
-    await completeWelcomeForm({ language: 'en', primaryUse: '', userNotes: '' });
-    setCurrentStep('tutorial');
+    try {
+      await completeWelcomeForm({ language: 'en', primaryUse: '', userNotes: '' });
+      setCurrentStep('tutorial');
+    } catch (error) {
+      console.error('Error skipping welcome form:', error);
+      setCurrentStep('tutorial');
+    }
   };
 
   const handleTutorialComplete = async () => {
-    await completeWelcomeTutorial();
-    onComplete();
+    try {
+      await completeWelcomeTutorial();
+      onComplete();
+    } catch (error) {
+      console.error('Error completing tutorial:', error);
+      onComplete();
+    }
   };
 
   const handleTutorialSkip = async () => {
-    await completeWelcomeTutorial();
-    onComplete();
+    try {
+      await completeWelcomeTutorial();
+      onComplete();
+    } catch (error) {
+      console.error('Error skipping tutorial:', error);
+      onComplete();
+    }
   };
 
   if (currentStep === 'complete') {

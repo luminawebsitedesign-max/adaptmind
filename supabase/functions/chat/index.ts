@@ -1,10 +1,50 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
+// CORS headers for cross-origin requests
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Rate limiting configuration - security hardening
+// In-memory store (resets on function cold start, but provides basic protection)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const RATE_LIMIT_MAX_REQUESTS = 20; // Max 20 requests per minute per user
+
+/**
+ * Check if a request should be rate limited
+ * @param identifier - User ID or IP address
+ * @returns true if request should be blocked, false otherwise
+ */
+function isRateLimited(identifier: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(identifier);
+  
+  // Clean up expired entries periodically
+  if (rateLimitStore.size > 1000) {
+    for (const [key, value] of rateLimitStore.entries()) {
+      if (now > value.resetTime) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }
+  
+  if (!entry || now > entry.resetTime) {
+    // New window
+    rateLimitStore.set(identifier, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true; // Rate limited
+  }
+  
+  // Increment counter
+  entry.count++;
+  return false;
+}
 
 interface ChatRequest {
   messages: { role: string; content: string }[];
@@ -31,16 +71,78 @@ interface ChatRequest {
   };
 }
 
+/**
+ * Validate and sanitize chat messages
+ * Prevents excessively long inputs and validates structure
+ */
+function validateChatRequest(body: unknown): { valid: boolean; data?: ChatRequest; error?: string } {
+  if (!body || typeof body !== 'object') {
+    return { valid: false, error: 'Invalid request body' };
+  }
+  
+  const request = body as Record<string, unknown>;
+  
+  // Validate messages array
+  if (!Array.isArray(request.messages)) {
+    return { valid: false, error: 'Messages must be an array' };
+  }
+  
+  if (request.messages.length === 0) {
+    return { valid: false, error: 'At least one message is required' };
+  }
+  
+  if (request.messages.length > 50) {
+    return { valid: false, error: 'Too many messages in conversation' };
+  }
+  
+  // Validate each message
+  for (const msg of request.messages) {
+    if (typeof msg !== 'object' || msg === null) {
+      return { valid: false, error: 'Invalid message format' };
+    }
+    
+    const message = msg as Record<string, unknown>;
+    
+    if (typeof message.role !== 'string' || !['user', 'assistant', 'system'].includes(message.role)) {
+      return { valid: false, error: 'Invalid message role' };
+    }
+    
+    if (typeof message.content !== 'string') {
+      return { valid: false, error: 'Message content must be a string' };
+    }
+    
+    // Limit message content length (security: prevent excessive input)
+    if (message.content.length > 10000) {
+      return { valid: false, error: 'Message content too long (max 10000 characters)' };
+    }
+  }
+  
+  return { valid: true, data: body as ChatRequest };
+}
+
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Get client IP for rate limiting (fallback for unauthenticated requests)
+    const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("cf-connecting-ip") || 
+                     "unknown";
+
     // Verify user authentication
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      console.log("Missing authorization header");
+      // Rate limit by IP for unauthenticated requests
+      if (isRateLimited(`ip:${clientIP}`)) {
+        return new Response(
+          JSON.stringify({ error: "Too many requests. Please wait a moment before trying again." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: "Missing authorization header. Please sign in." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -50,7 +152,6 @@ serve(async (req) => {
     // Extract the JWT token
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
-      console.log("No token in authorization header");
       return new Response(
         JSON.stringify({ error: "Invalid authorization header. Please sign in again." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -62,9 +163,10 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     if (!supabaseUrl || !supabaseAnonKey) {
+      // Security: Don't expose detailed config errors
       console.error("Supabase environment variables not configured");
       return new Response(
-        JSON.stringify({ error: "Service configuration error" }),
+        JSON.stringify({ error: "Service temporarily unavailable" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -81,7 +183,8 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
     if (authError) {
-      console.log("Auth error:", authError.message);
+      // Security: Don't log sensitive auth details
+      console.log("Auth verification failed");
       return new Response(
         JSON.stringify({ 
           error: "Session expired or invalid. Please refresh the page or sign in again.",
@@ -92,21 +195,52 @@ serve(async (req) => {
     }
     
     if (!user) {
-      console.log("No user found from token");
       return new Response(
         JSON.stringify({ error: "Please sign in to use the AI assistant." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    console.log("Authenticated user:", user.id);
+    // Rate limit by user ID (primary) and IP (secondary)
+    const rateLimitKey = `user:${user.id}`;
+    if (isRateLimited(rateLimitKey)) {
+      console.log("Rate limit exceeded for user");
+      return new Response(
+        JSON.stringify({ error: "You're sending messages too quickly. Please wait a moment before trying again." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const { messages, context }: ChatRequest = await req.json();
+    // Parse and validate request body
+    let requestBody: unknown;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON in request body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const validation = validateChatRequest(requestBody);
+    if (!validation.valid || !validation.data) {
+      return new Response(
+        JSON.stringify({ error: validation.error || "Invalid request" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { messages, context } = validation.data;
+    
+    // Get API key from environment (security: never expose in client)
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
-      throw new Error("AI service is not configured");
+      return new Response(
+        JSON.stringify({ error: "AI service is not configured. Please contact support." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Build comprehensive context-aware system prompt (Beta-honest version)
@@ -164,10 +298,12 @@ Guidelines:
 
 
     if (context?.userPreferences) {
+      // Sanitize user preferences (limit length)
+      const sanitizedPrefs = String(context.userPreferences).slice(0, 2000);
       systemPrompt += `
 
 USER PREFERENCES (adjust your tone and advice accordingly):
-${context.userPreferences}`;
+${sanitizedPrefs}`;
     }
 
     if (context) {
@@ -204,8 +340,6 @@ Habit Summary: ${context.habits.completedToday}/${context.habits.total} complete
 Use this data to provide personalized, relevant advice. Reference specific tasks, goals, and habits by name when giving feedback.`;
     }
 
-    console.log("Sending request to Lovable AI Gateway with full context");
-
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -224,11 +358,12 @@ Use this data to provide personalized, relevant advice. Reference specific tasks
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      // Security: Log minimal info, don't expose to client
+      console.error("AI gateway error:", response.status);
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "AI service is busy. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -241,12 +376,10 @@ Use this data to provide personalized, relevant advice. Reference specific tasks
       }
       
       return new Response(
-        JSON.stringify({ error: "AI service temporarily unavailable" }),
+        JSON.stringify({ error: "AI service temporarily unavailable. Please try again later." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    console.log("Successfully received response from AI Gateway, streaming...");
 
     return new Response(response.body, {
       headers: { 
@@ -256,7 +389,8 @@ Use this data to provide personalized, relevant advice. Reference specific tasks
       },
     });
   } catch (error) {
-    console.error("Chat function error:", error);
+    // Security: Don't expose stack traces or detailed errors
+    console.error("Chat function error");
     return new Response(
       JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
