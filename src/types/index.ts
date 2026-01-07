@@ -23,6 +23,7 @@ export interface TodoList {
 export interface Goal {
   id: string;
   title: string;
+  icon?: string;
   description?: string;
   category: 'short' | 'medium' | 'custom';
   progress: number;

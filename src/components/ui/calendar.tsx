@@ -31,17 +31,17 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "w-full h-full p-0 font-normal aria-selected:opacity-100",
+          "w-full h-full p-0 font-normal",
           "focus:outline-none focus-visible:outline-none focus:ring-0"
         ),
-        day_range_end: "day-range-end",
+        // Range-related classes are intentionally disabled (single-date calendar only)
+        day_range_end: "",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground",
-        day_outside:
-          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+        day_outside: "day-outside text-muted-foreground opacity-50",
         day_disabled: "text-muted-foreground opacity-50",
-        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        day_range_middle: "",
         day_hidden: "invisible",
         ...classNames,
       }}

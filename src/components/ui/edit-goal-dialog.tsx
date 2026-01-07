@@ -3,6 +3,7 @@ import { Goal, Milestone } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -29,6 +30,7 @@ interface EditGoalDialogProps {
 
 export function EditGoalDialog({ goal, open, onOpenChange, onSave }: EditGoalDialogProps) {
   const [title, setTitle] = useState("");
+  const [icon, setIcon] = useState("🎯");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<"short" | "medium" | "custom">("short");
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -37,6 +39,7 @@ export function EditGoalDialog({ goal, open, onOpenChange, onSave }: EditGoalDia
   useEffect(() => {
     if (goal) {
       setTitle(goal.title);
+      setIcon(goal.icon ?? "🎯");
       setDescription(goal.description || "");
       setCategory(goal.category);
       setMilestones(goal.milestones);
@@ -71,6 +74,7 @@ export function EditGoalDialog({ goal, open, onOpenChange, onSave }: EditGoalDia
 
     onSave({
       title,
+      icon,
       description: description || undefined,
       category,
       milestones,
@@ -92,14 +96,20 @@ export function EditGoalDialog({ goal, open, onOpenChange, onSave }: EditGoalDia
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-title">Title *</Label>
-            <Input
-              id="edit-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Goal title"
-            />
+          <div className="flex items-end gap-3">
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <IconPicker value={icon} onChange={setIcon} />
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="edit-title">Title *</Label>
+              <Input
+                id="edit-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Goal title"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

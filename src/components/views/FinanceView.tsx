@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -54,6 +55,7 @@ export function FinanceView() {
     transactions, 
     financeGoals,
     addPortfolio, 
+    updatePortfolio,
     deletePortfolio,
     addTransaction,
     addFinanceGoal,
@@ -457,12 +459,9 @@ export function FinanceView() {
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="💰"
+                  <IconPicker
                     value={newPortfolio.icon}
-                    onChange={(e) => setNewPortfolio(prev => ({ ...prev, icon: e.target.value }))}
-                    className="w-16 text-center text-xl"
-                    maxLength={2}
+                    onChange={(icon) => setNewPortfolio((prev) => ({ ...prev, icon }))}
                   />
                   <Input
                     placeholder="Portfolio name"
@@ -582,9 +581,12 @@ export function FinanceView() {
               <div key={portfolio.id} className="glass rounded-2xl p-5 hover-glow transition-all duration-300">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center text-2xl">
-                      {portfolio.icon}
-                    </div>
+                    <IconPicker
+                      value={portfolio.icon}
+                      onChange={(icon) => updatePortfolio(portfolio.id, { icon })}
+                      className="w-12 h-12 rounded-xl bg-secondary/20"
+                      ariaLabel="Change portfolio icon"
+                    />
                     <div>
                       <h3 className="font-semibold text-lg">{portfolio.name}</h3>
                       <p className="text-xs text-muted-foreground capitalize">{portfolio.type}</p>

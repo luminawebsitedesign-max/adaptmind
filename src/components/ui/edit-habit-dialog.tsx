@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Habit } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -18,14 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface EditHabitDialogProps {
-  habit: Habit | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (updates: Partial<Habit>) => void;
-}
-
-const EMOJI_OPTIONS = ["🏃", "📚", "🧘", "💪", "🎯", "✍️", "🎨", "🎵", "💤", "💧", "🥗", "🧠"];
 
 export function EditHabitDialog({ habit, open, onOpenChange, onSave }: EditHabitDialogProps) {
   const [name, setName] = useState("");
@@ -71,23 +64,9 @@ export function EditHabitDialog({ habit, open, onOpenChange, onSave }: EditHabit
 
           <div className="space-y-2">
             <Label>Icon</Label>
-            <div className="grid grid-cols-6 gap-2">
-              {EMOJI_OPTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => setIcon(emoji)}
-                  className={`p-2 text-xl rounded-lg transition-all ${
-                    icon === emoji
-                      ? "bg-primary/20 ring-2 ring-primary"
-                      : "bg-muted/20 hover:bg-muted/40"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+            <IconPicker value={icon} onChange={setIcon} />
             <div className="flex items-center gap-2 mt-2">
-              <Label htmlFor="custom-icon" className="text-xs">Or custom:</Label>
+              <Label htmlFor="custom-icon" className="text-xs">Or type:</Label>
               <Input
                 id="custom-icon"
                 value={icon}
@@ -97,6 +76,7 @@ export function EditHabitDialog({ habit, open, onOpenChange, onSave }: EditHabit
               />
             </div>
           </div>
+
 
           <div className="space-y-2">
             <Label>Frequency</Label>
