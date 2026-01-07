@@ -40,8 +40,9 @@ serve(async (req) => {
     // Verify user authentication
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
+      console.log("Missing authorization header");
       return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
+        JSON.stringify({ error: "Missing authorization header. Please sign in." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -57,18 +58,35 @@ serve(async (req) => {
       );
     }
 
+    // Create Supabase client with the user's token
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
+    // Validate the user's session
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (authError || !user) {
+    if (authError) {
+      console.log("Auth error:", authError.message);
+      // Return a more helpful error message
       return new Response(
-        JSON.stringify({ error: "Invalid or expired session. Please sign in again." }),
+        JSON.stringify({ 
+          error: "Session expired or invalid. Please refresh the page or sign in again.",
+          code: "SESSION_EXPIRED" 
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    if (!user) {
+      console.log("No user found in session");
+      return new Response(
+        JSON.stringify({ error: "Please sign in to use the AI assistant." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    console.log("Authenticated user:", user.id);
 
     const { messages, context }: ChatRequest = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

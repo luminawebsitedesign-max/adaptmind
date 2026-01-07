@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditTaskDialog } from "@/components/ui/edit-task-dialog";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import {
   DragDropContext,
   Droppable,
@@ -236,12 +237,9 @@ export function TodosView() {
               <div className="flex gap-2">
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground font-medium">Icon</label>
-                  <Input
-                    placeholder="📝"
+                  <EmojiPicker
                     value={newListIcon}
-                    onChange={(e) => setNewListIcon(e.target.value)}
-                    className="w-16 text-center text-xl"
-                    maxLength={2}
+                    onChange={setNewListIcon}
                   />
                 </div>
                 <div className="flex-1 space-y-1">

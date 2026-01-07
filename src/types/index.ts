@@ -28,6 +28,8 @@ export interface Goal {
   progress: number;
   milestones: Milestone[];
   deadline?: Date;
+  startDate?: Date;
+  customDuration?: number; // Duration in days for custom goals
   createdAt: Date;
   completedAt?: Date;
 }
