@@ -43,26 +43,54 @@ export function CalendarView() {
     );
   }, [tasksWithDeadlines, selectedDate]);
 
-  // Get goals with deadlines
+  // Get goals with deadlines or that should appear on calendar
   const goalsWithDeadlines = useMemo(() => {
-    return goals.filter(g => g.deadline).map(g => ({
-      ...g,
-      dueOnDate: g.deadline && isSameDay(new Date(g.deadline), selectedDate),
-    }));
+    return goals.map(g => {
+      // If goal has a deadline, check if it's on the selected date
+      const deadline = g.deadline ? new Date(g.deadline) : null;
+      const startDate = g.startDate ? new Date(g.startDate) : (g.createdAt ? new Date(g.createdAt) : null);
+      
+      // For goals without a deadline, calculate one based on category
+      let effectiveDeadline = deadline;
+      if (!effectiveDeadline && startDate) {
+        if (g.category === 'short') {
+          effectiveDeadline = new Date(startDate);
+          effectiveDeadline.setDate(effectiveDeadline.getDate() + 7);
+        } else if (g.category === 'medium') {
+          effectiveDeadline = new Date(startDate);
+          effectiveDeadline.setMonth(effectiveDeadline.getMonth() + 1);
+        }
+      }
+      
+      return {
+        ...g,
+        effectiveDeadline,
+        startDate: startDate || new Date(),
+        dueOnDate: effectiveDeadline && isSameDay(effectiveDeadline, selectedDate),
+        startsOnDate: startDate && isSameDay(startDate, selectedDate),
+      };
+    });
   }, [goals, selectedDate]);
 
   // Modifier for days with events
   const modifiers = useMemo(() => {
     const taskDates = tasksWithDeadlines.map(t => new Date(t.deadline!));
     const habitDates = habits.flatMap(h => h.completedDates.map(d => new Date(d)));
-    const goalDates = goals.filter(g => g.deadline).map(g => new Date(g.deadline!));
+    
+    // Get all goal dates (both deadlines and start dates)
+    const goalDeadlineDates = goalsWithDeadlines
+      .filter(g => g.effectiveDeadline)
+      .map(g => new Date(g.effectiveDeadline!));
+    const goalStartDates = goalsWithDeadlines
+      .filter(g => g.startDate)
+      .map(g => new Date(g.startDate));
     
     return {
       hasTask: taskDates,
       hasHabit: habitDates,
-      hasGoal: goalDates,
+      hasGoal: [...goalDeadlineDates, ...goalStartDates],
     };
-  }, [tasksWithDeadlines, habits, goals]);
+  }, [tasksWithDeadlines, habits, goalsWithDeadlines]);
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -260,20 +288,27 @@ export function CalendarView() {
               )}
 
               {/* Goals */}
-              {goalsWithDeadlines.filter(g => g.dueOnDate).map(goal => (
-                <div key={goal.id} className="space-y-2">
+              {goalsWithDeadlines.filter(g => g.dueOnDate || g.startsOnDate).length > 0 && (
+                <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs font-medium text-secondary uppercase tracking-wide">
                     <Target className="w-3.5 h-3.5" />
-                    Goal Deadline
+                    Goals
                   </div>
-                  <div className="p-3 rounded-lg bg-secondary/15 border-l-3 border-secondary">
-                    <div className="text-sm font-medium">{goal.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {goal.progress}% complete
+                  {goalsWithDeadlines.filter(g => g.dueOnDate || g.startsOnDate).map(goal => (
+                    <div key={goal.id} className="p-3 rounded-lg bg-secondary/15 border-l-3 border-secondary">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium">{goal.title}</div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary/20 text-secondary">
+                          {goal.startsOnDate ? 'Starts' : 'Due'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {goal.progress}% complete • {goal.category === 'custom' ? 'Custom' : goal.category === 'short' ? 'Short-term' : 'Medium-term'}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
 
               {/* Habits */}
               {habitsOnDate.length > 0 && (
@@ -312,7 +347,7 @@ export function CalendarView() {
 
               {/* Empty state for selected day */}
               {tasksDueOnDate.length === 0 && 
-               goalsWithDeadlines.filter(g => g.dueOnDate).length === 0 && 
+               goalsWithDeadlines.filter(g => g.dueOnDate || g.startsOnDate).length === 0 && 
                habitsOnDate.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="w-10 h-10 mx-auto mb-3 opacity-40 text-primary" />

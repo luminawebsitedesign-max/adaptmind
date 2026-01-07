@@ -118,21 +118,38 @@ export function useAIChat() {
     setError(null);
 
     try {
-      // Get the current session for authenticated requests
-      const { data: { session } } = await supabase.auth.getSession();
+      // Force refresh the session to ensure we have a valid token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!session?.access_token) {
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        // Try to refresh the session
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError || !refreshData.session?.access_token) {
+          setError('Session expired. Please sign in again.');
+          setIsLoading(false);
+          onDone();
+          return;
+        }
+      }
+      
+      // Get the freshest session after potential refresh
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession?.access_token) {
         setError('Please sign in to use the AI assistant.');
         setIsLoading(false);
         onDone();
         return;
       }
 
+      const accessToken = currentSession.access_token;
+
       const response = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           messages,
