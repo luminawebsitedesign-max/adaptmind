@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -37,31 +38,44 @@ const PRIMARY_USES = [
 export function WelcomeFormModal({ onComplete, onSkip }: WelcomeFormModalProps) {
   const [language, setLanguage] = useState('en');
   const [primaryUse, setPrimaryUse] = useState('');
+  const [primaryUseOther, setPrimaryUseOther] = useState('');
   const [userNotes, setUserNotes] = useState('');
+
+  const combinedUserNotes = useMemo(() => {
+    const trimmedNotes = userNotes.trim();
+    const trimmedOther = primaryUseOther.trim();
+
+    if (primaryUse !== 'other' || !trimmedOther) return trimmedNotes;
+
+    const otherLine = `Primary use (custom): ${trimmedOther}`;
+    if (!trimmedNotes) return otherLine;
+    return `${trimmedNotes}\n\n${otherLine}`;
+  }, [primaryUse, primaryUseOther, userNotes]);
 
   const handleContinue = () => {
     onComplete({
       language,
       primaryUse,
-      userNotes,
+      userNotes: combinedUserNotes,
     });
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-lg mx-4">
-        {/* Skip button */}
-        <button
-          onClick={onSkip}
-          className="absolute -top-10 right-0 text-muted-foreground hover:text-foreground text-sm transition-colors"
-        >
-          Skip for now
-        </button>
 
         {/* Card */}
-        <div className="glass-strong rounded-3xl p-8 md:p-10 relative overflow-hidden">
+        <div className="glass-strong rounded-3xl p-6 md:p-10 relative overflow-hidden max-h-[calc(100vh-3rem)] overflow-y-auto">
           {/* Background glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+
+          {/* Skip button */}
+          <button
+            onClick={onSkip}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm transition-colors"
+          >
+            Skip for now
+          </button>
           
           {/* Beta Badge */}
           <div className="flex justify-center mb-4 relative">
@@ -129,10 +143,27 @@ export function WelcomeFormModal({ onComplete, onSkip }: WelcomeFormModalProps) 
               </Select>
             </div>
 
+            {/* "Something Else" details */}
+            {primaryUse === 'other' && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Tell us how you plan to use AdaptMind{' '}
+                  <span className="text-muted-foreground font-normal">(optional)</span>
+                </Label>
+                <Input
+                  value={primaryUseOther}
+                  onChange={(e) => setPrimaryUseOther(e.target.value)}
+                  placeholder="E.g., finance tracking, study planning, health routines..."
+                  maxLength={200}
+                />
+              </div>
+            )}
+
             {/* User Notes */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Anything you'd like AdaptMind to know? <span className="text-muted-foreground font-normal">(optional)</span>
+                Anything you'd like AdaptMind to know?{' '}
+                <span className="text-muted-foreground font-normal">(optional)</span>
               </Label>
               <Textarea
                 value={userNotes}

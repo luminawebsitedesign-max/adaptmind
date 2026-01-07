@@ -10,7 +10,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("w-full h-full select-none", className)}
+      className={cn("w-full h-full select-none pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col h-full w-full",
         month: "flex flex-col h-full w-full",

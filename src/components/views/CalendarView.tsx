@@ -231,10 +231,10 @@ export function CalendarView() {
                 "[&_.rdp-row]:flex [&_.rdp-row]:flex-1 [&_.rdp-row]:gap-1",
                 // Cell styling
                 "[&_.rdp-cell]:flex-1 [&_.rdp-cell]:p-0",
-                // Day button styling
+                // Day button styling (layout only; hover styling handled by <Calendar /> to avoid global hover)
                 "[&_.rdp-button]:w-full [&_.rdp-button]:h-full [&_.rdp-button]:rounded-xl [&_.rdp-button]:min-h-[44px] [&_.rdp-button]:md:min-h-[52px]",
                 "[&_.rdp-button]:text-sm [&_.rdp-button]:md:text-base [&_.rdp-button]:font-medium",
-                "[&_.rdp-button]:hover:bg-primary/15 [&_.rdp-button]:transition-colors",
+                "[&_.rdp-button]:transition-colors",
                 "[&_.rdp-button]:focus:outline-none [&_.rdp-button]:focus-visible:ring-2 [&_.rdp-button]:focus-visible:ring-primary/50 [&_.rdp-button]:focus-visible:ring-offset-0",
                 // Selected day
                 "[&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_selected]:shadow-md",
