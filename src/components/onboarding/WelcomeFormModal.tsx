@@ -1,10 +1,20 @@
 import { useMemo, useState } from 'react';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Sparkles, ArrowRight, Globe, Target } from 'lucide-react';
+import { Sparkles, ArrowRight, Globe, Target, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+// Input validation schema - security hardening
+const welcomeFormSchema = z.object({
+  language: z.string().min(2).max(10).default('en'),
+  primaryUse: z.string().max(50).optional(),
+  primaryUseOther: z.string().max(200).optional(),
+  userNotes: z.string().max(500).optional(),
+});
 
 interface WelcomeFormModalProps {
   onComplete: (data: WelcomeFormData) => void;
@@ -40,6 +50,7 @@ export function WelcomeFormModal({ onComplete, onSkip }: WelcomeFormModalProps) 
   const [primaryUse, setPrimaryUse] = useState('');
   const [primaryUseOther, setPrimaryUseOther] = useState('');
   const [userNotes, setUserNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const combinedUserNotes = useMemo(() => {
     const trimmedNotes = userNotes.trim();
@@ -52,12 +63,45 @@ export function WelcomeFormModal({ onComplete, onSkip }: WelcomeFormModalProps) 
     return `${trimmedNotes}\n\n${otherLine}`;
   }, [primaryUse, primaryUseOther, userNotes]);
 
-  const handleContinue = () => {
-    onComplete({
+  const handleContinue = async () => {
+    if (isSubmitting) return;
+    
+    // Validate inputs
+    const validation = welcomeFormSchema.safeParse({
       language,
       primaryUse,
-      userNotes: combinedUserNotes,
+      primaryUseOther,
+      userNotes,
     });
+    
+    if (!validation.success) {
+      toast.error('Please check your inputs and try again');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await onComplete({
+        language: language.trim(),
+        primaryUse: primaryUse.trim(),
+        userNotes: combinedUserNotes.trim(),
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Failed to save preferences. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleSkip = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSkip();
+    } catch (error) {
+      console.error('Error skipping form:', error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -71,8 +115,9 @@ export function WelcomeFormModal({ onComplete, onSkip }: WelcomeFormModalProps) 
 
           {/* Skip button */}
           <button
-            onClick={onSkip}
-            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm transition-colors"
+            onClick={handleSkip}
+            disabled={isSubmitting}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm transition-colors disabled:opacity-50"
           >
             Skip for now
           </button>
@@ -182,9 +227,19 @@ export function WelcomeFormModal({ onComplete, onSkip }: WelcomeFormModalProps) 
               className="w-full glow-primary"
               size="lg"
               onClick={handleContinue}
+              disabled={isSubmitting}
             >
-              Continue
-              <ArrowRight className="w-4 h-4 ml-2" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
             </Button>
           </div>
 

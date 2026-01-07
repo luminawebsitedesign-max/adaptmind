@@ -174,47 +174,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const completeWelcomeForm = async (data: WelcomeFormData) => {
-    if (!user) return;
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update({ 
-        welcome_form_completed: true,
-        preferred_language: data.language,
-        primary_use: data.primaryUse || null,
-        user_notes: data.userNotes || null,
-      })
-      .eq('user_id', user.id);
-    
-    if (!error && profile) {
-      setProfile({ 
-        ...profile, 
-        welcome_form_completed: true,
-        preferred_language: data.language,
-        primary_use: data.primaryUse || null,
-        user_notes: data.userNotes || null,
-      });
+    if (!user) {
+      console.error('Cannot complete welcome form: No user logged in');
+      return;
     }
+    
+    console.log('Completing welcome form for user:', user.id);
+    
+    const updateData = { 
+      welcome_form_completed: true,
+      preferred_language: data.language?.slice(0, 10) || 'en',
+      primary_use: data.primaryUse?.slice(0, 50) || null,
+      user_notes: data.userNotes?.slice(0, 1000) || null,
+    };
+    
+    const { data: updatedProfile, error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error completing welcome form:', error);
+      // Still update local state to prevent re-showing the form
+      // The database will be synced on next login
+      if (profile) {
+        setProfile({ ...profile, ...updateData });
+      }
+      return;
+    }
+    
+    console.log('Welcome form completed successfully');
+    setProfile(updatedProfile as Profile);
   };
 
   const completeWelcomeTutorial = async () => {
-    if (!user) return;
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update({ 
-        welcome_tutorial_completed: true,
-        onboarding_completed: true, // Also mark legacy field
-      })
-      .eq('user_id', user.id);
-    
-    if (!error && profile) {
-      setProfile({ 
-        ...profile, 
-        welcome_tutorial_completed: true,
-        onboarding_completed: true,
-      });
+    if (!user) {
+      console.error('Cannot complete tutorial: No user logged in');
+      return;
     }
+    
+    console.log('Completing welcome tutorial for user:', user.id);
+    
+    const updateData = { 
+      welcome_tutorial_completed: true,
+      onboarding_completed: true,
+    };
+    
+    const { data: updatedProfile, error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error completing tutorial:', error);
+      // Still update local state to prevent re-showing
+      if (profile) {
+        setProfile({ ...profile, ...updateData });
+      }
+      return;
+    }
+    
+    console.log('Tutorial completed successfully');
+    setProfile(updatedProfile as Profile);
   };
 
   // For manual tutorial re-run, temporarily set local state
