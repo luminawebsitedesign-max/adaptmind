@@ -242,7 +242,7 @@ export function AssistantView() {
       setMessages([{
         id: '1',
         role: 'assistant',
-        content: "Hello! I'm your AdaptMind AI assistant (Beta). I can help you plan, organize, and suggest tasks, goals, and habits. Note: I'm here to guide you — automatic creation is coming soon! Try asking me to organize your tasks or create a weekly plan.",
+        content: "Hello! I'm your AdaptMind AI assistant.\n\nIn this beta, I can:\n• Help you plan and organize your week\n• Suggest tasks, goals, and habits\n• Answer questions about productivity\n\nNote: Automatic creation is experimental — I'll do my best, but please verify items appear correctly. Try asking me for planning advice or to review your tasks!",
         timestamp: new Date(),
       }]);
     }

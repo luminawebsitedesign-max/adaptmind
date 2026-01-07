@@ -176,7 +176,9 @@ export function GoalsView() {
                   <SelectContent>
                     <SelectItem value="short">Short-Term (This Week)</SelectItem>
                     <SelectItem value="medium">Medium-Term (This Month)</SelectItem>
-                    <SelectItem value="custom">Custom Length</SelectItem>
+                    <SelectItem value="custom" disabled className="text-muted-foreground">
+                      Custom Timeline — Coming Soon
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -247,18 +249,38 @@ export function GoalsView() {
           onEditGoal={(goal) => setEditingGoal(goal)}
         />
 
-        {/* Custom */}
-        <GoalSection
-          title="Custom Goals"
-          subtitle="User-defined timeframe"
-          goals={customGoals}
-          color="purple"
-          expandedGoal={expandedGoal}
-          setExpandedGoal={setExpandedGoal}
-          toggleMilestone={toggleMilestone}
-          onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
-          onEditGoal={(goal) => setEditingGoal(goal)}
-        />
+        {/* Custom - Coming Soon Section */}
+        {customGoals.length > 0 && (
+          <GoalSection
+            title="Custom Goals"
+            subtitle="User-defined timeframe"
+            goals={customGoals}
+            color="purple"
+            expandedGoal={expandedGoal}
+            setExpandedGoal={setExpandedGoal}
+            toggleMilestone={toggleMilestone}
+            onDeleteGoal={(id, title) => setDeleteConfirm({ open: true, goalId: id, goalTitle: title })}
+            onEditGoal={(goal) => setEditingGoal(goal)}
+          />
+        )}
+        
+        {/* Custom Timeline Coming Soon Placeholder */}
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold">Custom Timeline Goals</h2>
+              <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-muted text-muted-foreground border border-border/50">
+                Coming Soon
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">Set your own deadlines and milestones</p>
+          </div>
+          <div className="glass rounded-xl p-6 text-center border-dashed border-2 border-border/50">
+            <Target className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">Custom timeline goals with specific end dates are coming in a future update</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">For now, use Short-Term or Medium-Term categories</p>
+          </div>
+        </div>
       </div>
 
       {goals.length === 0 && (

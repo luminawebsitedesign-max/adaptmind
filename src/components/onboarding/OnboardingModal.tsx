@@ -151,6 +151,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 function WelcomeStep() {
   return (
     <div className="flex flex-col items-center text-center">
+      {/* Beta Badge */}
+      <div className="mb-4">
+        <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-secondary/20 text-secondary border border-secondary/30">
+          Beta
+        </span>
+      </div>
+
       {/* Icon */}
       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-primary mb-6">
         <Sparkles className="w-8 h-8 text-primary-foreground" />
@@ -161,7 +168,7 @@ function WelcomeStep() {
       </h1>
       
       <p className="text-muted-foreground mb-6">
-        Your intelligent productivity companion that helps you organize tasks, build habits, and achieve your goals with AI-powered insights.
+        Your intelligent productivity companion. Track tasks, build habits, and achieve goals — with AI guidance along the way.
       </p>
 
       {/* What it's for */}
@@ -180,9 +187,10 @@ function WelcomeStep() {
         </div>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground mt-6">
-        🚀 Beta version — more features coming soon!
-      </p>
+      <div className="text-center text-xs text-muted-foreground mt-6 bg-muted/20 rounded-lg p-3">
+        <p className="font-medium mb-1">🚀 You're using an early beta</p>
+        <p>Some features are still being refined. Your feedback helps us improve!</p>
+      </div>
     </div>
   );
 }
@@ -192,36 +200,40 @@ function FeaturesStep() {
     {
       icon: CheckSquare,
       title: 'Tasks',
-      description: 'Create, organize, and track your to-dos with priorities and due dates.',
-      color: 'text-primary'
+      description: 'Create and organize your to-dos with priorities.',
+      color: 'text-primary',
+      status: 'ready'
     },
     {
       icon: Zap,
       title: 'Habits',
-      description: 'Build positive habits with daily tracking and streak monitoring.',
-      color: 'text-secondary'
+      description: 'Track daily habits and build streaks.',
+      color: 'text-secondary',
+      status: 'ready'
     },
     {
       icon: Calendar,
       title: 'Calendar',
-      description: 'View your schedule and plan ahead with an integrated calendar.',
-      color: 'text-accent'
+      description: 'View tasks and habits by date.',
+      color: 'text-accent',
+      status: 'ready'
     },
     {
       icon: Bot,
       title: 'AI Assistant',
-      description: 'Get intelligent suggestions and insights (beta — features expanding).',
-      color: 'text-primary'
+      description: 'Get planning help and suggestions. Automation coming soon.',
+      color: 'text-primary',
+      status: 'beta'
     }
   ];
 
   return (
     <div className="flex flex-col">
       <h2 className="text-2xl font-display font-bold mb-2 text-center">
-        How to Use AdaptMind
+        What You Can Do
       </h2>
       <p className="text-muted-foreground text-center text-sm mb-6">
-        Here's what you can do with AdaptMind
+        Core features available now
       </p>
 
       <div className="space-y-3">
@@ -233,8 +245,15 @@ function FeaturesStep() {
             <div className={`mt-0.5 ${feature.color}`}>
               <feature.icon className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="font-medium text-sm">{feature.title}</h3>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-sm">{feature.title}</h3>
+                {feature.status === 'beta' && (
+                  <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase rounded bg-muted text-muted-foreground">
+                    Beta
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">{feature.description}</p>
             </div>
           </div>
