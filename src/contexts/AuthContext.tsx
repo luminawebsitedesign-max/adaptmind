@@ -13,6 +13,7 @@ interface Profile {
   preferred_language: string | null;
   primary_use: string | null;
   user_notes: string | null;
+  disable_auto_tutorial: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -34,7 +35,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   completeWelcomeForm: (data: WelcomeFormData) => Promise<void>;
-  completeWelcomeTutorial: () => Promise<void>;
+  dismissTutorial: () => Promise<void>;
+  toggleAutoTutorial: (disabled: boolean) => Promise<void>;
   resetTutorialForManualRun: () => void;
 }
 
@@ -209,36 +211,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(updatedProfile as Profile);
   };
 
-  const completeWelcomeTutorial = async () => {
-    if (!user) {
-      console.error('Cannot complete tutorial: No user logged in');
-      return;
+  // Dismiss tutorial for this session (doesn't disable auto-tutorial)
+  const dismissTutorial = async () => {
+    // Just update local state to hide tutorial for this session
+    // Tutorial will show again on next sign-in unless auto-tutorial is disabled
+    if (profile) {
+      setProfile({ ...profile, welcome_tutorial_completed: true, onboarding_completed: true });
     }
-    
-    console.log('Completing welcome tutorial for user:', user.id);
-    
-    const updateData = { 
-      welcome_tutorial_completed: true,
-      onboarding_completed: true,
-    };
+  };
+
+  // Toggle auto-tutorial setting (persists to DB)
+  const toggleAutoTutorial = async (disabled: boolean) => {
+    if (!user) return;
     
     const { data: updatedProfile, error } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update({ disable_auto_tutorial: disabled })
       .eq('user_id', user.id)
       .select()
       .single();
     
     if (error) {
-      console.error('Error completing tutorial:', error);
-      // Still update local state to prevent re-showing
-      if (profile) {
-        setProfile({ ...profile, ...updateData });
-      }
+      console.error('Error toggling auto-tutorial:', error);
       return;
     }
     
-    console.log('Tutorial completed successfully');
     setProfile(updatedProfile as Profile);
   };
 
@@ -260,7 +257,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       completeOnboarding,
       completeWelcomeForm,
-      completeWelcomeTutorial,
+      dismissTutorial,
+      toggleAutoTutorial,
       resetTutorialForManualRun,
     }}>
       {children}

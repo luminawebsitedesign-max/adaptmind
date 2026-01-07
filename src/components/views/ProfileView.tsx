@@ -21,7 +21,7 @@ import {
 const MAX_PERSONALITY_LENGTH = 1000;
 
 export function ProfileView() {
-  const { user, profile } = useAuth();
+  const { user, profile, toggleAutoTutorial } = useAuth();
   const { theme, setTheme } = useTheme();
   const { setShowManualTutorial } = useAppStore();
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
@@ -29,6 +29,7 @@ export function ProfileView() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [autoTutorialDisabled, setAutoTutorialDisabled] = useState(profile?.disable_auto_tutorial || false);
 
   // Prevent hydration mismatch
   useEffect(() => {
@@ -285,6 +286,25 @@ export function ProfileView() {
             >
               Run Tutorial
             </Button>
+          </div>
+          
+          {/* Auto-tutorial toggle */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+            <div className="space-y-1">
+              <p className="font-medium text-sm">Show Tutorial on Sign-in</p>
+              <p className="text-xs text-muted-foreground">
+                Tutorial appears each time you sign in (disable to skip)
+              </p>
+            </div>
+            <Switch
+              checked={!autoTutorialDisabled}
+              onCheckedChange={async (checked) => {
+                setAutoTutorialDisabled(!checked);
+                await toggleAutoTutorial(!checked);
+                toast.success(checked ? "Tutorial will show on sign-in" : "Tutorial disabled on sign-in");
+              }}
+              aria-label="Toggle auto tutorial"
+            />
           </div>
         </CardContent>
       </Card>
