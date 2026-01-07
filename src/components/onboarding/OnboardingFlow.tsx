@@ -10,21 +10,29 @@ interface OnboardingFlowProps {
 }
 
 export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
-  const { profile, completeWelcomeForm, completeWelcomeTutorial } = useAuth();
+  const { profile, completeWelcomeForm, dismissTutorial } = useAuth();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('complete');
 
   useEffect(() => {
     if (!profile) return;
     
-    // Determine which step to show
+    // Welcome form: show only if never completed
     if (!profile.welcome_form_completed) {
       setCurrentStep('form');
-    } else if (!profile.welcome_tutorial_completed) {
-      setCurrentStep('tutorial');
-    } else {
-      setCurrentStep('complete');
-      onComplete();
+      return;
     }
+    
+    // Tutorial: show on every sign-in UNLESS user disabled auto-tutorial
+    // The tutorial is shown regardless of welcome_tutorial_completed
+    // (welcome_tutorial_completed just tracks if they've seen it this session)
+    if (!profile.disable_auto_tutorial && !profile.welcome_tutorial_completed) {
+      setCurrentStep('tutorial');
+      return;
+    }
+    
+    // All done for this session
+    setCurrentStep('complete');
+    onComplete();
   }, [profile, onComplete]);
 
   const handleFormComplete = async (data: WelcomeFormData) => {
@@ -51,7 +59,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const handleTutorialComplete = async () => {
     try {
-      await completeWelcomeTutorial();
+      // Dismiss tutorial for this session (local state only)
+      await dismissTutorial();
       onComplete();
     } catch (error) {
       console.error('Error completing tutorial:', error);
@@ -61,7 +70,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const handleTutorialSkip = async () => {
     try {
-      await completeWelcomeTutorial();
+      await dismissTutorial();
       onComplete();
     } catch (error) {
       console.error('Error skipping tutorial:', error);

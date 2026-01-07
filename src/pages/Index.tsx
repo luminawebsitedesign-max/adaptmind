@@ -24,9 +24,12 @@ const Index = () => {
   
   useEffect(() => {
     if (profile) {
-      // Show onboarding if either welcome form or tutorial is not completed
-      const needsOnboarding = !profile.welcome_form_completed || !profile.welcome_tutorial_completed;
-      setShowOnboarding(needsOnboarding);
+      // Welcome form: show only if never completed
+      // Tutorial: show on every sign-in unless disabled
+      const needsWelcomeForm = !profile.welcome_form_completed;
+      const needsTutorial = !profile.disable_auto_tutorial && !profile.welcome_tutorial_completed;
+      
+      setShowOnboarding(needsWelcomeForm || needsTutorial);
     }
   }, [profile]);
 
