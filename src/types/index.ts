@@ -48,9 +48,21 @@ export interface Habit {
   icon: string;
   frequency: 'daily' | 'weekly' | 'custom';
   customDays?: number[];
+  customIntervalDays?: number; // Custom frequency: repeat every N days
   streak: number;
   bestStreak: number;
   completedDates: string[];
+  createdAt: Date;
+}
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  icon: string;
+  type: 'personal' | 'investment' | 'savings' | 'custom';
+  customTypeName?: string; // Custom type label when type === 'custom'
+  balance: number;
+  currency: string;
   createdAt: Date;
 }
 
@@ -61,16 +73,7 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-// Finance / Portfolio Types
-export interface Portfolio {
-  id: string;
-  name: string;
-  icon: string;
-  type: 'personal' | 'investment' | 'savings' | 'custom';
-  balance: number;
-  currency: string;
-  createdAt: Date;
-}
+// Finance / Portfolio Types - see above (Portfolio moved near Habit for customTypeName field)
 
 export interface Transaction {
   id: string;

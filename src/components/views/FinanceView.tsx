@@ -70,6 +70,7 @@ export function FinanceView() {
     name: "",
     icon: "💰",
     type: "personal" as Portfolio["type"],
+    customTypeName: "",
     balance: 0,
     currency: "USD",
   });
@@ -192,14 +193,20 @@ export function FinanceView() {
 
   const handleAddPortfolio = () => {
     if (newPortfolio.name.trim()) {
+      // Validate custom type name if type is custom
+      if (newPortfolio.type === "custom" && !newPortfolio.customTypeName.trim()) {
+        toast.error("Please enter a custom type name");
+        return;
+      }
       addPortfolio({
         name: newPortfolio.name,
         icon: newPortfolio.icon,
         type: newPortfolio.type,
+        customTypeName: newPortfolio.type === "custom" ? newPortfolio.customTypeName : undefined,
         balance: newPortfolio.balance,
         currency: newPortfolio.currency,
       });
-      setNewPortfolio({ name: "", icon: "💰", type: "personal", balance: 0, currency: "USD" });
+      setNewPortfolio({ name: "", icon: "💰", type: "personal", customTypeName: "", balance: 0, currency: "USD" });
       setIsAddingPortfolio(false);
       toast.success("Portfolio created!", { duration: 3000 });
     }
@@ -481,6 +488,14 @@ export function FinanceView() {
                     <SelectItem value="custom">✨ Custom</SelectItem>
                   </SelectContent>
                 </Select>
+                {/* Custom type name input - only show when custom is selected */}
+                {newPortfolio.type === "custom" && (
+                  <Input
+                    placeholder="Custom type name (e.g., Business, Emergency Fund)"
+                    value={newPortfolio.customTypeName}
+                    onChange={(e) => setNewPortfolio(prev => ({ ...prev, customTypeName: e.target.value }))}
+                  />
+                )}
                 <Input
                   type="number"
                   placeholder="Starting balance"
@@ -589,7 +604,9 @@ export function FinanceView() {
                     />
                     <div>
                       <h3 className="font-semibold text-lg">{portfolio.name}</h3>
-                      <p className="text-xs text-muted-foreground capitalize">{portfolio.type}</p>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {portfolio.type === "custom" && portfolio.customTypeName ? portfolio.customTypeName : portfolio.type}
+                      </p>
                     </div>
                   </div>
                   <TooltipProvider>

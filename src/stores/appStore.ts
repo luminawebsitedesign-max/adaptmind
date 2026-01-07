@@ -9,6 +9,7 @@ interface AppState {
   // Todo Lists
   todoLists: TodoList[];
   addTodoList: (list: Omit<TodoList, 'id' | 'items'>) => void;
+  updateTodoList: (id: string, updates: Partial<Omit<TodoList, 'id' | 'items'>>) => void;
   deleteTodoList: (id: string) => void;
   addTodoItem: (listId: string, item: Omit<TodoItem, 'id' | 'order'>) => void;
   updateTodoItem: (listId: string, itemId: string, updates: Partial<TodoItem>) => void;
@@ -66,6 +67,12 @@ export const useAppStore = create<AppState>()(
       
       addTodoList: (list) => set((state) => ({
         todoLists: [...state.todoLists, { ...list, id: generateId(), items: [] }]
+      })),
+
+      updateTodoList: (id, updates) => set((state) => ({
+        todoLists: state.todoLists.map(list => 
+          list.id === id ? { ...list, ...updates } : list
+        )
       })),
       
       deleteTodoList: (id) => set((state) => ({

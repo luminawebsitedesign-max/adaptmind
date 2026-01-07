@@ -19,23 +19,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface EditHabitDialogProps {
+  habit: Habit | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (updates: Partial<Habit>) => void;
+}
 
 export function EditHabitDialog({ habit, open, onOpenChange, onSave }: EditHabitDialogProps) {
   const [name, setName] = useState("");
   const [icon, setIcon] = useState("🎯");
   const [frequency, setFrequency] = useState<"daily" | "weekly" | "custom">("daily");
+  const [customIntervalDays, setCustomIntervalDays] = useState(2);
+  const [customIntervalInput, setCustomIntervalInput] = useState("2");
 
   useEffect(() => {
     if (habit) {
       setName(habit.name);
       setIcon(habit.icon);
       setFrequency(habit.frequency);
+      if (habit.customIntervalDays) {
+        setCustomIntervalDays(habit.customIntervalDays);
+        setCustomIntervalInput(String(habit.customIntervalDays));
+      }
     }
   }, [habit]);
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave({ name, icon, frequency });
+    onSave({ 
+      name, 
+      icon, 
+      frequency,
+      customIntervalDays: frequency === "custom" ? customIntervalDays : undefined,
+    });
     onOpenChange(false);
   };
 
@@ -91,6 +108,40 @@ export function EditHabitDialog({ habit, open, onOpenChange, onSave }: EditHabit
               </SelectContent>
             </Select>
           </div>
+
+          {/* Custom frequency input */}
+          {frequency === "custom" && (
+            <div className="space-y-1 p-3 rounded-lg bg-muted/20 border border-border/50">
+              <Label className="text-xs text-muted-foreground">Repeat every N days</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Every</span>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  className="w-20 text-center"
+                  placeholder="2"
+                  value={customIntervalInput}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (next === "" || /^\d+$/.test(next)) {
+                      setCustomIntervalInput(next);
+                    }
+                  }}
+                  onBlur={() => {
+                    const parsed = parseInt(customIntervalInput, 10);
+                    if (!parsed || parsed < 1) {
+                      setCustomIntervalInput("1");
+                      setCustomIntervalDays(1);
+                      return;
+                    }
+                    setCustomIntervalInput(String(parsed));
+                    setCustomIntervalDays(parsed);
+                  }}
+                />
+                <span className="text-sm">days</span>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">

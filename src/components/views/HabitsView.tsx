@@ -38,6 +38,8 @@ export function HabitsView() {
     name: "",
     icon: "✨",
     frequency: "daily" as Habit["frequency"],
+    customIntervalDays: 2,
+    customIntervalInput: "2",
   });
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; habitId: string; habitName: string }>({
     open: false,
@@ -48,12 +50,21 @@ export function HabitsView() {
 
   const handleAddHabit = () => {
     if (newHabit.name.trim()) {
+      // Validate custom interval if frequency is custom
+      if (newHabit.frequency === "custom") {
+        const parsed = parseInt(newHabit.customIntervalInput, 10);
+        if (!parsed || parsed < 1) {
+          toast.error("Enter a valid interval of 1 day or more");
+          return;
+        }
+      }
       addHabit({
         name: newHabit.name,
         icon: newHabit.icon,
         frequency: newHabit.frequency,
+        customIntervalDays: newHabit.frequency === "custom" ? newHabit.customIntervalDays : undefined,
       });
-      setNewHabit({ name: "", icon: "✨", frequency: "daily" });
+      setNewHabit({ name: "", icon: "✨", frequency: "daily", customIntervalDays: 2, customIntervalInput: "2" });
       setIsAddingHabit(false);
       toast.success("Habit created successfully");
     }
@@ -173,6 +184,37 @@ export function HabitsView() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Custom frequency input - only show when custom is selected */}
+              {newHabit.frequency === "custom" && (
+                <div className="space-y-1 p-3 rounded-lg bg-muted/20 border border-border/50">
+                  <label className="text-xs text-muted-foreground">Repeat every N days</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Every</span>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      className="w-20 text-center"
+                      placeholder="2"
+                      value={newHabit.customIntervalInput}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        if (next === "" || /^\d+$/.test(next)) {
+                          setNewHabit((prev) => ({ ...prev, customIntervalInput: next }));
+                        }
+                      }}
+                      onBlur={() => {
+                        const parsed = parseInt(newHabit.customIntervalInput, 10);
+                        if (!parsed || parsed < 1) {
+                          setNewHabit((prev) => ({ ...prev, customIntervalInput: "1", customIntervalDays: 1 }));
+                          return;
+                        }
+                        setNewHabit((prev) => ({ ...prev, customIntervalInput: String(parsed), customIntervalDays: parsed }));
+                      }}
+                    />
+                    <span className="text-sm">days</span>
+                  </div>
+                </div>
+              )}
               <Button 
                 onClick={handleAddHabit} 
                 className={cn(
@@ -257,7 +299,9 @@ export function HabitsView() {
               <div>
                 <p className="font-medium">{habit.name}</p>
                 <p className="text-xs text-muted-foreground capitalize">
-                  {habit.frequency}
+                  {habit.frequency === "custom" && habit.customIntervalDays
+                    ? `Every ${habit.customIntervalDays} days`
+                    : habit.frequency}
                 </p>
               </div>
             </div>
