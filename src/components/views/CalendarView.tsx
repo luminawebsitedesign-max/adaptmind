@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Calendar } from "@/components/ui/calendar";
-import { format, isSameDay, addMonths, subMonths, startOfDay, parseISO } from "date-fns";
+import { format, isSameDay, addMonths, subMonths, startOfDay, eachDayOfInterval, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle2, Target, Repeat, Calendar as CalendarIcon, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,17 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
-// Helper to normalize dates to avoid timezone issues
-const normalizeDate = (date: Date | string): Date => {
-  if (typeof date === 'string') {
-    // If it's an ISO string with date only (YYYY-MM-DD), parse it as local
-    if (date.length === 10 && date.includes('-')) {
-      const [year, month, day] = date.split('-').map(Number);
-      return new Date(year, month - 1, day);
+// Normalize dates to local midnight to avoid timezone drift.
+const toLocalMidnight = (date: Date | string): Date => {
+  if (typeof date === "string") {
+    // Handle YYYY-MM-DD explicitly as local date
+    if (date.length === 10 && date.includes("-")) {
+      const [year, month, day] = date.split("-").map(Number);
+      return new Date(year, month - 1, day, 0, 0, 0, 0);
     }
-    // Otherwise parse as ISO and use start of day in local timezone
-    const parsed = new Date(date);
-    return startOfDay(parsed);
+    return startOfDay(new Date(date));
   }
   return startOfDay(date);
 };
@@ -33,8 +31,8 @@ export function CalendarView() {
 
   // Get all tasks with deadlines
   const tasksWithDeadlines = useMemo(() => {
-    return todoLists.flatMap(list => 
-      list.items.filter(item => item.deadline).map(item => ({
+    return todoLists.flatMap((list) =>
+      list.items.filter((item) => item.deadline).map((item) => ({
         ...item,
         listName: list.name,
         listIcon: list.icon,
@@ -45,7 +43,7 @@ export function CalendarView() {
   // Get habits completed on selected date
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const habitsOnDate = useMemo(() => {
-    return habits.map(habit => ({
+    return habits.map((habit) => ({
       ...habit,
       completedOnDate: habit.completedDates.includes(dateStr),
     }));
@@ -53,67 +51,64 @@ export function CalendarView() {
 
   // Get tasks due on selected date
   const tasksDueOnDate = useMemo(() => {
-    return tasksWithDeadlines.filter(task => 
-      task.deadline && isSameDay(new Date(task.deadline), selectedDate)
+    return tasksWithDeadlines.filter(
+      (task) => task.deadline && isSameDay(toLocalMidnight(task.deadline), toLocalMidnight(selectedDate))
     );
   }, [tasksWithDeadlines, selectedDate]);
 
-  // Get goals with deadlines or that should appear on calendar
-  const goalsWithDeadlines = useMemo(() => {
-    const today = normalizeDate(new Date());
-    
-    return goals.map(g => {
-      // Normalize all dates to avoid timezone issues
-      const deadline = g.deadline ? normalizeDate(g.deadline) : null;
-      const startDate = g.startDate 
-        ? normalizeDate(g.startDate) 
-        : (g.createdAt ? normalizeDate(g.createdAt) : today);
-      
-      // For goals without a deadline, calculate one based on category
-      let effectiveDeadline = deadline;
-      if (!effectiveDeadline) {
-        if (g.category === 'short') {
-          effectiveDeadline = new Date(startDate);
-          effectiveDeadline.setDate(effectiveDeadline.getDate() + 7);
-        } else if (g.category === 'medium') {
-          effectiveDeadline = new Date(startDate);
-          effectiveDeadline.setMonth(effectiveDeadline.getMonth() + 1);
-        } else if (g.category === 'custom' && g.customDuration) {
-          effectiveDeadline = new Date(startDate);
-          effectiveDeadline.setDate(effectiveDeadline.getDate() + g.customDuration);
+  // Goals w/ derived local-midnight start/end + range dates
+  const goalsWithDates = useMemo(() => {
+    const today = toLocalMidnight(new Date());
+
+    return goals.map((g) => {
+      const start = g.startDate
+        ? toLocalMidnight(g.startDate)
+        : g.createdAt
+          ? toLocalMidnight(g.createdAt)
+          : today;
+
+      // Derive inclusive end date if missing
+      let endInclusive: Date | null = g.deadline ? toLocalMidnight(g.deadline) : null;
+      if (!endInclusive) {
+        if (g.category === "short") {
+          endInclusive = addDays(start, 6);
+        } else if (g.category === "medium") {
+          // Approx month: 30 days for highlighting consistency
+          endInclusive = addDays(start, 29);
+        } else if (g.category === "custom" && g.customDuration) {
+          endInclusive = addDays(start, Math.max(1, g.customDuration) - 1);
         }
       }
-      
-      const normalizedSelected = normalizeDate(selectedDate);
-      
+
+      const end = endInclusive ?? start;
+      const rangeDays = eachDayOfInterval({ start, end });
+      const selectedLocal = toLocalMidnight(selectedDate);
+
       return {
         ...g,
-        effectiveDeadline,
-        startDate,
-        dueOnDate: effectiveDeadline && isSameDay(effectiveDeadline, normalizedSelected),
-        startsOnDate: isSameDay(startDate, normalizedSelected),
+        start,
+        end,
+        rangeDays,
+        dueOnDate: isSameDay(end, selectedLocal),
+        startsOnDate: isSameDay(start, selectedLocal),
       };
     });
   }, [goals, selectedDate]);
 
   // Modifier for days with events
   const modifiers = useMemo(() => {
-    const taskDates = tasksWithDeadlines.map(t => normalizeDate(t.deadline!));
-    const habitDates = habits.flatMap(h => h.completedDates.map(d => normalizeDate(d)));
-    
-    // Get all goal dates (both deadlines and start dates) - normalized
-    const goalDeadlineDates = goalsWithDeadlines
-      .filter(g => g.effectiveDeadline)
-      .map(g => normalizeDate(g.effectiveDeadline!));
-    const goalStartDates = goalsWithDeadlines
-      .map(g => normalizeDate(g.startDate));
-    
+    const taskDates = tasksWithDeadlines.map((t) => toLocalMidnight(t.deadline!));
+    const habitDates = habits.flatMap((h) => h.completedDates.map((d) => toLocalMidnight(d)));
+
+    const goalRangeDates = goalsWithDates.flatMap((g) => g.rangeDays);
+
     return {
       hasTask: taskDates,
       hasHabit: habitDates,
-      hasGoal: [...goalDeadlineDates, ...goalStartDates],
+      hasGoal: goalRangeDates,
     };
-  }, [tasksWithDeadlines, habits, goalsWithDeadlines]);
+  }, [tasksWithDeadlines, habits, goalsWithDates]);
+
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -311,27 +306,33 @@ export function CalendarView() {
               )}
 
               {/* Goals */}
-              {goalsWithDeadlines.filter(g => g.dueOnDate || g.startsOnDate).length > 0 && (
+              {goalsWithDates.filter((g) => g.dueOnDate || g.startsOnDate).length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs font-medium text-secondary uppercase tracking-wide">
                     <Target className="w-3.5 h-3.5" />
                     Goals
                   </div>
-                  {goalsWithDeadlines.filter(g => g.dueOnDate || g.startsOnDate).map(goal => (
-                    <div key={goal.id} className="p-3 rounded-lg bg-secondary/15 border-l-3 border-secondary">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-medium">{goal.title}</div>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary/20 text-secondary">
-                          {goal.startsOnDate ? 'Starts' : 'Due'}
-                        </span>
+                  {goalsWithDates
+                    .filter((g) => g.dueOnDate || g.startsOnDate)
+                    .map((goal) => (
+                      <div key={goal.id} className="p-3 rounded-lg bg-secondary/15 border-l-3 border-secondary">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <span className="text-base">{goal.icon ?? "🎯"}</span>
+                            <span>{goal.title}</span>
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary/20 text-secondary">
+                            {goal.startsOnDate ? "Starts" : "Ends"}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {goal.progress}% complete • {goal.category === "custom" ? "Custom" : goal.category === "short" ? "Short-term" : "Medium-term"}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {goal.progress}% complete • {goal.category === 'custom' ? 'Custom' : goal.category === 'short' ? 'Short-term' : 'Medium-term'}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
+
 
               {/* Habits */}
               {habitsOnDate.length > 0 && (
@@ -370,7 +371,7 @@ export function CalendarView() {
 
               {/* Empty state for selected day */}
               {tasksDueOnDate.length === 0 && 
-               goalsWithDeadlines.filter(g => g.dueOnDate || g.startsOnDate).length === 0 && 
+               goalsWithDates.filter((g) => g.dueOnDate || g.startsOnDate).length === 0 && 
                habitsOnDate.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="w-10 h-10 mx-auto mb-3 opacity-40 text-primary" />
@@ -381,7 +382,7 @@ export function CalendarView() {
 
               {/* Empty state when no habits exist */}
               {tasksDueOnDate.length === 0 && 
-               goalsWithDeadlines.filter(g => g.dueOnDate).length === 0 && 
+               goalsWithDates.filter((g) => g.dueOnDate).length === 0 && 
                habitsOnDate.length > 0 && 
                habitsOnDate.every(h => !h.completedOnDate) && (
                 <div className="text-center py-8 text-muted-foreground">

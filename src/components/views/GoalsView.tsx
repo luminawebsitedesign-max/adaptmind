@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditGoalDialog } from "@/components/ui/edit-goal-dialog";
@@ -33,16 +34,28 @@ import {
 import { Goal } from "@/types";
 import { toast } from "sonner";
 
+const parseLocalDateInput = (value: string): Date => {
+  // value is expected as YYYY-MM-DD
+  const [y, m, d] = value.split("-").map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1, 0, 0, 0, 0);
+};
+
+const formatLocalDate = (date: Date): string => {
+  return date.toLocaleDateString();
+};
+
 export function GoalsView() {
   const { goals, addGoal, updateGoal, deleteGoal, toggleMilestone } = useAppStore();
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: "",
+    icon: "🎯",
     description: "",
     category: "short" as Goal["category"],
     milestones: [""],
-    customDuration: 30, // Default 30 days for custom
-    startDate: new Date().toISOString().split('T')[0], // Today as default start
+    customDuration: 30,
+    customDurationInput: "30",
+    startDate: new Date().toISOString().split('T')[0],
   });
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; goalId: string; goalTitle: string }>({
@@ -53,53 +66,65 @@ export function GoalsView() {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   const handleAddGoal = () => {
-    if (newGoal.title.trim()) {
-      // Calculate deadline based on category
-      let deadline: Date | undefined;
-      let startDate: Date | undefined;
-      
-      if (newGoal.category === 'short') {
-        // 1 week from now
-        deadline = new Date();
-        deadline.setDate(deadline.getDate() + 7);
-      } else if (newGoal.category === 'medium') {
-        // 1 month from now
-        deadline = new Date();
-        deadline.setMonth(deadline.getMonth() + 1);
-      } else if (newGoal.category === 'custom') {
-        // Custom duration from specified start date
-        startDate = new Date(newGoal.startDate);
-        deadline = new Date(startDate);
-        deadline.setDate(deadline.getDate() + newGoal.customDuration);
+    if (!newGoal.title.trim()) return;
+
+    // Calculate deadline based on category
+    let deadline: Date | undefined;
+    let startDate: Date | undefined;
+
+    if (newGoal.category === "short") {
+      deadline = new Date();
+      deadline.setDate(deadline.getDate() + 7);
+    } else if (newGoal.category === "medium") {
+      deadline = new Date();
+      deadline.setMonth(deadline.getMonth() + 1);
+    } else if (newGoal.category === "custom") {
+      const parsed = parseInt(newGoal.customDurationInput, 10);
+      const durationDays = Number.isFinite(parsed) ? parsed : NaN;
+      if (!durationDays || durationDays < 1) {
+        toast.error("Enter a duration of 1 day or more");
+        return;
       }
-      
-      addGoal({
-        title: newGoal.title,
-        description: newGoal.description,
-        category: newGoal.category,
-        progress: 0,
-        deadline,
-        startDate,
-        customDuration: newGoal.category === 'custom' ? newGoal.customDuration : undefined,
-        milestones: newGoal.milestones
-          .filter((m) => m.trim())
-          .map((title, i) => ({
-            id: String(i),
-            title,
-            completed: false,
-          })),
-      });
-      setNewGoal({
-        title: "",
-        description: "",
-        category: "short",
-        milestones: [""],
-        customDuration: 30,
-        startDate: new Date().toISOString().split('T')[0],
-      });
-      setIsAddingGoal(false);
-      toast.success("Goal created successfully");
+
+      startDate = parseLocalDateInput(newGoal.startDate);
+      // End date is inclusive; e.g. 1-day goal ends same day.
+      deadline = new Date(startDate);
+      deadline.setDate(deadline.getDate() + (durationDays - 1));
+
+      // Persist the validated numeric duration
+      newGoal.customDuration = durationDays;
     }
+
+    addGoal({
+      title: newGoal.title,
+      icon: newGoal.icon,
+      description: newGoal.description,
+      category: newGoal.category,
+      progress: 0,
+      deadline,
+      startDate,
+      customDuration: newGoal.category === "custom" ? newGoal.customDuration : undefined,
+      milestones: newGoal.milestones
+        .filter((m) => m.trim())
+        .map((title, i) => ({
+          id: String(i),
+          title,
+          completed: false,
+        })),
+    });
+
+    setNewGoal({
+      title: "",
+      icon: "🎯",
+      description: "",
+      category: "short",
+      milestones: [""],
+      customDuration: 30,
+      customDurationInput: "30",
+      startDate: new Date().toISOString().split('T')[0],
+    });
+    setIsAddingGoal(false);
+    toast.success("Goal created successfully");
   };
 
   const handleDeleteGoal = () => {
@@ -164,15 +189,21 @@ export function GoalsView() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Goal Title *</label>
-                <Input
-                  placeholder="e.g., Learn a new programming language"
-                  value={newGoal.title}
-                  onChange={(e) =>
-                    setNewGoal((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                />
+              <div className="flex gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Icon</label>
+                  <IconPicker value={newGoal.icon} onChange={(icon) => setNewGoal((prev) => ({ ...prev, icon }))} />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs text-muted-foreground">Goal Title *</label>
+                  <Input
+                    placeholder="e.g., Learn a new programming language"
+                    value={newGoal.title}
+                    onChange={(e) =>
+                      setNewGoal((prev) => ({ ...prev, title: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Description (optional)</label>
@@ -219,33 +250,44 @@ export function GoalsView() {
                         onChange={(e) =>
                           setNewGoal((prev) => ({ ...prev, startDate: e.target.value }))
                         }
-                        min={new Date().toISOString().split('T')[0]}
+                        min={new Date().toISOString().split("T")[0]}
                       />
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">Duration (days)</label>
                       <Input
-                        type="number"
-                        min="1"
-                        max="365"
-                        step="1"
-                        value={String(newGoal.customDuration)}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="30"
+                        value={newGoal.customDurationInput}
                         onChange={(e) => {
-                          const value = e.target.value;
-                          // Allow empty input for typing, but ensure min of 1 when parsing
-                          const parsed = parseInt(value, 10);
-                          if (!isNaN(parsed)) {
-                            setNewGoal((prev) => ({ ...prev, customDuration: Math.max(1, Math.min(365, parsed)) }));
-                          } else if (value === '') {
-                            setNewGoal((prev) => ({ ...prev, customDuration: 1 }));
+                          const next = e.target.value;
+                          // allow empty + digits while typing
+                          if (next === "" || /^\d+$/.test(next)) {
+                            setNewGoal((prev) => ({ ...prev, customDurationInput: next }));
                           }
                         }}
-                        placeholder="1"
+                        onBlur={() => {
+                          const parsed = parseInt(newGoal.customDurationInput, 10);
+                          if (!parsed || parsed < 1) {
+                            setNewGoal((prev) => ({ ...prev, customDurationInput: "1", customDuration: 1 }));
+                            return;
+                          }
+                          const clamped = Math.min(365, parsed);
+                          setNewGoal((prev) => ({ ...prev, customDurationInput: String(clamped), customDuration: clamped }));
+                        }}
                       />
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Goal ends: {new Date(new Date(newGoal.startDate).getTime() + newGoal.customDuration * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                    Goal ends: {(() => {
+                      const parsed = parseInt(newGoal.customDurationInput, 10);
+                      const durationDays = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
+                      const start = parseLocalDateInput(newGoal.startDate);
+                      const end = new Date(start);
+                      end.setDate(end.getDate() + (durationDays - 1));
+                      return formatLocalDate(end);
+                    })()}
                   </p>
                 </div>
               )}
@@ -456,21 +498,24 @@ function GoalSection({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-lg">{goal.title}</h3>
-                      {goal.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {goal.description}
-                        </p>
-                      )}
-                      {goal.deadline && (
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <Target className="w-3 h-3" />
-                          Due: {new Date(goal.deadline).toLocaleDateString()}
-                          {goal.customDuration && ` (${goal.customDuration} days)`}
-                        </p>
-                      )}
-                    </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{goal.icon ?? "🎯"}</span>
+                          <h3 className="font-semibold text-lg">{goal.title}</h3>
+                        </div>
+                        {goal.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {goal.description}
+                          </p>
+                        )}
+                        {goal.deadline && (
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                            <Target className="w-3 h-3" />
+                            Due: {formatLocalDate(new Date(goal.deadline))}
+                            {goal.customDuration && ` (${goal.customDuration} days)`}
+                          </p>
+                        )}
+                      </div>
                     <div className="flex gap-1">
                       <TooltipProvider>
                         <Tooltip>

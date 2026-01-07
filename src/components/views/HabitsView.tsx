@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditHabitDialog } from "@/components/ui/edit-habit-dialog";
 import { Plus, Trash2, Flame, TrendingUp, Check, Pencil } from "lucide-react";
@@ -138,15 +139,7 @@ export function HabitsView() {
               <div className="flex gap-2">
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground">Icon</label>
-                  <Input
-                    placeholder="✨"
-                    value={newHabit.icon}
-                    onChange={(e) =>
-                      setNewHabit((prev) => ({ ...prev, icon: e.target.value }))
-                    }
-                    className="w-16 text-center text-xl"
-                    maxLength={2}
-                  />
+                  <IconPicker value={newHabit.icon} onChange={(icon) => setNewHabit((prev) => ({ ...prev, icon }))} />
                 </div>
                 <div className="flex-1 space-y-1">
                   <label className="text-xs text-muted-foreground">Habit Name *</label>
