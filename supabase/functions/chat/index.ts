@@ -47,8 +47,19 @@ serve(async (req) => {
       );
     }
 
+    // Extract the JWT token
+    const token = authHeader.replace("Bearer ", "");
+    if (!token) {
+      console.log("No token in authorization header");
+      return new Response(
+        JSON.stringify({ error: "Invalid authorization header. Please sign in again." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error("Supabase environment variables not configured");
@@ -58,17 +69,19 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with the user's token
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+    // Create admin client to verify the token
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
     });
 
-    // Validate the user's session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Verify the JWT token directly
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
     if (authError) {
       console.log("Auth error:", authError.message);
-      // Return a more helpful error message
       return new Response(
         JSON.stringify({ 
           error: "Session expired or invalid. Please refresh the page or sign in again.",
@@ -79,7 +92,7 @@ serve(async (req) => {
     }
     
     if (!user) {
-      console.log("No user found in session");
+      console.log("No user found from token");
       return new Response(
         JSON.stringify({ error: "Please sign in to use the AI assistant." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }

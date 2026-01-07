@@ -226,13 +226,21 @@ export function GoalsView() {
                       <label className="text-xs text-muted-foreground">Duration (days)</label>
                       <Input
                         type="number"
-                        min={1}
-                        max={365}
-                        value={newGoal.customDuration}
-                        onChange={(e) =>
-                          setNewGoal((prev) => ({ ...prev, customDuration: Math.max(1, parseInt(e.target.value) || 1) }))
-                        }
-                        placeholder="30"
+                        min="1"
+                        max="365"
+                        step="1"
+                        value={String(newGoal.customDuration)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Allow empty input for typing, but ensure min of 1 when parsing
+                          const parsed = parseInt(value, 10);
+                          if (!isNaN(parsed)) {
+                            setNewGoal((prev) => ({ ...prev, customDuration: Math.max(1, Math.min(365, parsed)) }));
+                          } else if (value === '') {
+                            setNewGoal((prev) => ({ ...prev, customDuration: 1 }));
+                          }
+                        }}
+                        placeholder="1"
                       />
                     </div>
                   </div>
