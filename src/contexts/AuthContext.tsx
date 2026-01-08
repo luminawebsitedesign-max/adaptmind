@@ -81,10 +81,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Defer profile fetch to avoid deadlock
         if (session?.user) {
+          // On SIGNED_IN event, reset profile to null first to trigger fresh onboarding check
+          if (event === 'SIGNED_IN') {
+            setProfile(null);
+          }
+          
           setTimeout(() => {
             if (mounted) {
               fetchProfile(session.user.id).then(profile => {
-                if (mounted) setProfile(profile);
+                if (mounted && profile) {
+                  // For fresh sign-in, always reset welcome_tutorial_completed to false
+                  // This ensures tutorial shows on every sign-in session
+                  if (event === 'SIGNED_IN') {
+                    setProfile({ ...profile, welcome_tutorial_completed: false });
+                  } else {
+                    setProfile(profile);
+                  }
+                }
               });
             }
           }, 0);

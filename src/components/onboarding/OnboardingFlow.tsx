@@ -22,9 +22,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       return;
     }
     
-    // Tutorial: show on EVERY sign-in UNLESS user disabled auto-tutorial
-    // Do NOT check welcome_tutorial_completed - that's session-only state
-    if (!profile.disable_auto_tutorial) {
+    // Tutorial: show on EVERY sign-in UNLESS:
+    // 1. User disabled auto-tutorial in settings, OR
+    // 2. Tutorial was already shown this session (welcome_tutorial_completed is session-only state)
+    if (!profile.disable_auto_tutorial && !profile.welcome_tutorial_completed) {
       setCurrentStep('tutorial');
       return;
     }
