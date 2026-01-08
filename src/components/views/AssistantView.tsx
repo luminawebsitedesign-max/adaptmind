@@ -323,7 +323,7 @@ export function AssistantView() {
   ];
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex animate-fade-in">
+    <div className="h-[calc(100vh-5rem)] flex animate-fade-in">
       {/* Chat History Sidebar */}
       <ChatHistorySidebar
         conversations={conversations}
@@ -358,9 +358,9 @@ export function AssistantView() {
           </Button>
         </div>
 
-        <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden mx-4 mb-4">
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-4">
+        <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden mx-4 mb-4 min-h-0">
+          <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollRef}>
+            <div className="space-y-4 pb-4">
               {messages.map((message) => (
                 <div key={message.id} className={cn("flex gap-3", message.role === "user" ? "flex-row-reverse" : "")}>
                   <div className={cn(
@@ -374,10 +374,10 @@ export function AssistantView() {
                     )}
                   </div>
                   <div className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-3", 
+                    "max-w-[80%] rounded-2xl px-4 py-3 min-w-0", 
                     message.role === "user" ? "bg-primary/10 border border-primary/20" : "bg-card border border-border"
                   )}>
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">{message.content}</p>
                     <p className="text-xs text-muted-foreground mt-2">
                       {message.timestamp.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                     </p>

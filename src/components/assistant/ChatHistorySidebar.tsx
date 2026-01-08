@@ -115,8 +115,8 @@ export function ChatHistorySidebar({
                 )}
                 onClick={() => onSelectConversation(conv)}
               >
-                <div className="p-2.5 pr-10">
-                  <p className="text-sm font-medium truncate">{conv.title}</p>
+                <div className="p-2.5 pr-10 min-w-0">
+                  <p className="text-sm font-medium truncate" title={conv.title}>{conv.title}</p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                     <Clock className="w-3 h-3" />
                     <span>{formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}</span>
