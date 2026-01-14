@@ -92,10 +92,25 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   }
 
   if (currentStep === 'tutorial') {
+    const handleSavePreferences = async (language: string, usage: string) => {
+      if (!completeWelcomeForm) return;
+      try {
+        // Save the preferences to profile - reuse completeWelcomeForm with updated data
+        await completeWelcomeForm({
+          language,
+          primaryUse: usage,
+          userNotes: '',
+        });
+      } catch (error) {
+        console.error('Error saving preferences:', error);
+      }
+    };
+
     return (
       <WelcomeTutorial
         onComplete={handleTutorialComplete}
         onSkip={handleTutorialSkip}
+        onSavePreferences={handleSavePreferences}
       />
     );
   }
@@ -106,13 +121,15 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 // Standalone tutorial component for manual re-run from settings
 interface StandaloneTutorialProps {
   onComplete: () => void;
+  onSavePreferences?: (language: string, usage: string) => void;
 }
 
-export function StandaloneTutorial({ onComplete }: StandaloneTutorialProps) {
+export function StandaloneTutorial({ onComplete, onSavePreferences }: StandaloneTutorialProps) {
   return (
     <WelcomeTutorial
       onComplete={onComplete}
       onSkip={onComplete}
+      onSavePreferences={onSavePreferences}
     />
   );
 }
