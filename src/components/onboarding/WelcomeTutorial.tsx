@@ -1,5 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   ArrowRight, 
   ArrowLeft,
@@ -10,15 +19,41 @@ import {
   Wallet,
   Bot,
   Rocket,
-  Sparkles
+  Sparkles,
+  User
 } from 'lucide-react';
 
 interface WelcomeTutorialProps {
   onComplete: () => void;
   onSkip: () => void;
+  onSavePreferences?: (language: string, usage: string) => void;
 }
 
-const TUTORIAL_STEPS = [
+const LANGUAGES = [
+  { value: 'en', label: 'English' },
+  { value: 'es', label: 'Español' },
+  { value: 'fr', label: 'Français' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'pt', label: 'Português' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'nl', label: 'Nederlands' },
+  { value: 'pl', label: 'Polski' },
+  { value: 'ja', label: '日本語' },
+  { value: 'zh', label: '中文' },
+  { value: 'ko', label: '한국어' },
+];
+
+interface TutorialStep {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  content: React.ReactNode;
+  isFormStep?: boolean;
+}
+
+const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'intro',
     title: 'Welcome to AdaptMind',
@@ -38,6 +73,15 @@ const TUTORIAL_STEPS = [
         </div>
       </div>
     ),
+  },
+  {
+    id: 'personalize',
+    title: 'Personalize Your Experience',
+    description: 'Help us tailor AdaptMind to your needs.',
+    icon: User,
+    color: 'from-secondary to-accent',
+    content: null, // Special handling for form step
+    isFormStep: true,
   },
   {
     id: 'tasks',
@@ -150,13 +194,21 @@ const TUTORIAL_STEPS = [
   },
 ];
 
-export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
+export function WelcomeTutorial({ onComplete, onSkip, onSavePreferences }: WelcomeTutorialProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [usageDescription, setUsageDescription] = useState('');
+  
   const currentStep = TUTORIAL_STEPS[currentStepIndex];
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === TUTORIAL_STEPS.length - 1;
 
   const handleNext = () => {
+    // If leaving the personalize step, save preferences
+    if (currentStep.isFormStep && onSavePreferences) {
+      onSavePreferences(selectedLanguage, usageDescription);
+    }
+    
     if (isLastStep) {
       onComplete();
     } else {
@@ -172,6 +224,46 @@ export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
 
   const StepIcon = currentStep.icon;
 
+  // Render the personalization form step
+  const renderFormStep = () => (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="language" className="text-sm font-medium">
+          Preferred Language
+        </Label>
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+          <SelectTrigger id="language" className="w-full">
+            <SelectValue placeholder="Select language" />
+          </SelectTrigger>
+          <SelectContent>
+            {LANGUAGES.map((lang) => (
+              <SelectItem key={lang.value} value={lang.value}>
+                {lang.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="usage" className="text-sm font-medium">
+          What are you using AdaptMind for? <span className="text-muted-foreground font-normal">(optional)</span>
+        </Label>
+        <Input
+          id="usage"
+          placeholder="e.g., Work productivity, personal goals, habit tracking..."
+          value={usageDescription}
+          onChange={(e) => setUsageDescription(e.target.value)}
+          className="w-full"
+          maxLength={200}
+        />
+        <p className="text-xs text-muted-foreground">
+          This helps our AI give you better suggestions
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-lg mx-4">
@@ -183,7 +275,7 @@ export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
           {/* Skip button */}
           <button
             onClick={onSkip}
-            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm transition-colors"
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm transition-colors z-10"
           >
             Skip Tutorial
           </button>
@@ -219,7 +311,7 @@ export function WelcomeTutorial({ onComplete, onSkip }: WelcomeTutorialProps) {
             </div>
 
             <div className="flex-1 py-4">
-              {currentStep.content}
+              {currentStep.isFormStep ? renderFormStep() : currentStep.content}
             </div>
           </div>
 

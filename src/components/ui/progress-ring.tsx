@@ -40,7 +40,12 @@ export function ProgressRing({
 
   return (
     <div 
-      className={cn("relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto", className)}
+      className={cn(
+        "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto",
+        // Ensure no square outline/ring/shadow artifacts - keep circular appearance only
+        "outline-none ring-0 border-0 shadow-none",
+        className
+      )}
       style={{ maxWidth: size, maxHeight: size }}
     >
       <svg 

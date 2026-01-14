@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+
+const TUTORIAL_SESSION_KEY = 'adaptmind_tutorial_shown_this_session';
 
 interface Profile {
   id: string;
@@ -47,6 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Track if this is a genuine fresh sign-in (not a token refresh or tab refocus)
+  const hasHandledInitialSession = useRef(false);
+  const lastSignInTime = useRef<number>(0);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -81,28 +87,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Defer profile fetch to avoid deadlock
         if (session?.user) {
-          // On SIGNED_IN event, reset profile to null first to trigger fresh onboarding check
+          // Determine if this is a genuine fresh sign-in
+          // SIGNED_IN fires on: actual login, OAuth refresh, token refresh, page reload
+          // We only want to show tutorial on ACTUAL fresh sign-ins
+          const now = Date.now();
+          const isGenuineFreshSignIn = event === 'SIGNED_IN' && 
+            !hasHandledInitialSession.current && 
+            (now - lastSignInTime.current > 5000); // Debounce 5 seconds
+          
           if (event === 'SIGNED_IN') {
-            setProfile(null);
+            lastSignInTime.current = now;
           }
           
           setTimeout(() => {
             if (mounted) {
-              fetchProfile(session.user.id).then(profile => {
-                if (mounted && profile) {
-                  // For fresh sign-in, always reset welcome_tutorial_completed to false
-                  // This ensures tutorial shows on every sign-in session
-                  if (event === 'SIGNED_IN') {
-                    setProfile({ ...profile, welcome_tutorial_completed: false });
+              fetchProfile(session.user.id).then(fetchedProfile => {
+                if (mounted && fetchedProfile) {
+                  // Only reset tutorial flag for genuine fresh sign-ins
+                  // AND only if sessionStorage doesn't indicate tutorial was already shown
+                  if (isGenuineFreshSignIn && !sessionStorage.getItem(TUTORIAL_SESSION_KEY)) {
+                    setProfile({ ...fetchedProfile, welcome_tutorial_completed: false });
                   } else {
-                    setProfile(profile);
+                    // For page reloads, token refreshes, etc. - check sessionStorage
+                    const tutorialShownThisSession = sessionStorage.getItem(TUTORIAL_SESSION_KEY) === 'true';
+                    setProfile({ 
+                      ...fetchedProfile, 
+                      welcome_tutorial_completed: tutorialShownThisSession || fetchedProfile.welcome_tutorial_completed 
+                    });
                   }
+                  hasHandledInitialSession.current = true;
                 }
               });
             }
           }, 0);
         } else {
           setProfile(null);
+          // Clear session flag on sign out so tutorial shows on next sign-in
+          sessionStorage.removeItem(TUTORIAL_SESSION_KEY);
+          hasHandledInitialSession.current = false;
         }
         
         setLoading(false);
@@ -117,8 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id).then(profile => {
-          if (mounted) setProfile(profile);
+        fetchProfile(session.user.id).then(fetchedProfile => {
+          if (mounted && fetchedProfile) {
+            // On initial page load (not a fresh sign-in), respect sessionStorage
+            const tutorialShownThisSession = sessionStorage.getItem(TUTORIAL_SESSION_KEY) === 'true';
+            setProfile({ 
+              ...fetchedProfile, 
+              welcome_tutorial_completed: tutorialShownThisSession || fetchedProfile.welcome_tutorial_completed 
+            });
+            hasHandledInitialSession.current = true;
+          }
         });
       }
       
@@ -226,8 +256,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Dismiss tutorial for this session (doesn't disable auto-tutorial)
   const dismissTutorial = async () => {
-    // Just update local state to hide tutorial for this session
-    // Tutorial will show again on next sign-in unless auto-tutorial is disabled
+    // Mark tutorial as shown for this session using sessionStorage
+    // This prevents re-triggering on tab focus, token refresh, etc.
+    sessionStorage.setItem(TUTORIAL_SESSION_KEY, 'true');
+    
+    // Update local state to hide tutorial for this session
+    // Tutorial will show again on next fresh sign-in unless auto-tutorial is disabled
     if (profile) {
       setProfile({ ...profile, welcome_tutorial_completed: true, onboarding_completed: true });
     }
