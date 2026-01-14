@@ -17,6 +17,32 @@ export interface ChatMessage {
   created_at: string;
 }
 
+// Generate a short, readable title from user message (4-6 words max)
+function generateShortTitle(content: string): string {
+  // Remove special characters, extra whitespace
+  const cleaned = content
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Split into words
+  const words = cleaned.split(' ').filter(w => w.length > 0);
+  
+  // Take first 4-5 meaningful words
+  const titleWords = words.slice(0, 5);
+  
+  // Join and capitalize first letter
+  let title = titleWords.join(' ');
+  
+  // Ensure title is reasonable length (max 30 chars)
+  if (title.length > 30) {
+    title = title.slice(0, 27) + '...';
+  }
+  
+  // Capitalize first letter
+  return title.charAt(0).toUpperCase() + title.slice(1);
+}
+
 export function useChatHistory() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
@@ -125,18 +151,19 @@ export function useChatHistory() {
         .single();
       
       if (shouldUpdateTitle.data?.title === 'New Chat') {
-        const truncatedTitle = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+        // Generate a short, readable title (4-6 words max)
+        const shortTitle = generateShortTitle(content);
         await supabase
           .from('chat_conversations')
-          .update({ title: truncatedTitle, updated_at: new Date().toISOString() })
+          .update({ title: shortTitle, updated_at: new Date().toISOString() })
           .eq('id', conversationId);
         
         // Update local state
         setConversations(prev => 
-          prev.map(c => c.id === conversationId ? { ...c, title: truncatedTitle } : c)
+          prev.map(c => c.id === conversationId ? { ...c, title: shortTitle } : c)
         );
         if (currentConversation?.id === conversationId) {
-          setCurrentConversation(prev => prev ? { ...prev, title: truncatedTitle } : null);
+          setCurrentConversation(prev => prev ? { ...prev, title: shortTitle } : null);
         }
       } else {
         // Just update the timestamp
