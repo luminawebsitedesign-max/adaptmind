@@ -38,18 +38,16 @@ export function ProgressRing({
     },
   };
 
+  // Generate a unique filter ID for this instance
+  const filterId = `glow-${color}-${Math.random().toString(36).substr(2, 9)}`;
+
   return (
     <div 
       className={cn(
         "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto",
-        // CRITICAL: Reset ALL potential square artifacts - no glow/shadow/ring/outline on wrapper
-        // The glow is applied via filter:drop-shadow on the SVG circle, not the container
-        "outline-none ring-0 border-0 shadow-none",
-        // Isolate from parent hover-glow effects
-        "[box-shadow:none!important] hover:[box-shadow:none!important]",
         className
       )}
-      style={{ maxWidth: size, maxHeight: size, boxShadow: 'none' }}
+      style={{ maxWidth: size, maxHeight: size }}
     >
       <svg 
         viewBox={`0 0 ${size} ${size}`} 
@@ -60,6 +58,16 @@ export function ProgressRing({
         aria-valuemin={0}
         aria-valuemax={100}
       >
+        {/* Define glow filter using SVG defs for reliable circular rendering */}
+        <defs>
+          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         {/* Background circle */}
         <circle
           cx={size / 2}
@@ -69,7 +77,7 @@ export function ProgressRing({
           stroke="hsl(var(--muted) / 0.3)"
           strokeWidth={strokeWidth}
         />
-        {/* Progress circle */}
+        {/* Progress circle with SVG-native glow filter */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -81,9 +89,7 @@ export function ProgressRing({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           className="transition-all duration-700 ease-out"
-          style={{
-            filter: `drop-shadow(0 0 8px ${colorMap[color].glow})`,
-          }}
+          filter={progress > 0 ? `url(#${filterId})` : undefined}
         />
       </svg>
       {showLabel && (
