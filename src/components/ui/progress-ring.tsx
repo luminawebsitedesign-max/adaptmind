@@ -42,11 +42,14 @@ export function ProgressRing({
     <div 
       className={cn(
         "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto",
-        // Ensure no square outline/ring/shadow artifacts - keep circular appearance only
+        // CRITICAL: Reset ALL potential square artifacts - no glow/shadow/ring/outline on wrapper
+        // The glow is applied via filter:drop-shadow on the SVG circle, not the container
         "outline-none ring-0 border-0 shadow-none",
+        // Isolate from parent hover-glow effects
+        "[box-shadow:none!important] hover:[box-shadow:none!important]",
         className
       )}
-      style={{ maxWidth: size, maxHeight: size }}
+      style={{ maxWidth: size, maxHeight: size, boxShadow: 'none' }}
     >
       <svg 
         viewBox={`0 0 ${size} ${size}`} 

@@ -115,9 +115,9 @@ export function ChatHistorySidebar({
                 )}
                 onClick={() => onSelectConversation(conv)}
               >
-                <div className="p-2.5 pr-10 min-w-0 overflow-hidden">
+                <div className="p-2.5 pr-10 min-w-0">
                   <p 
-                    className="text-sm font-medium overflow-hidden whitespace-nowrap text-ellipsis" 
+                    className="text-sm font-medium truncate max-w-full" 
                     title={conv.title}
                   >
                     {conv.title}
