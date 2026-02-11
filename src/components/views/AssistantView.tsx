@@ -23,8 +23,10 @@ interface Message {
 export function AssistantView() {
   const { 
     addTodoItem, 
+    addTodoList,
     addGoal, 
     addHabit,
+    addPortfolio,
     todoLists 
   } = useAppStore();
   const { streamChat, isLoading, error, clearError } = useAIChat();
@@ -95,39 +97,62 @@ export function AssistantView() {
   const executeActions = useCallback((actions: { type: string; params: string[] }[]) => {
     let successCount = 0;
     let failCount = 0;
+    const results: string[] = [];
+
+    // Helper: find or create a list by name
+    const getOrCreateList = (listName: string): string | null => {
+      const name = listName?.trim() || 'General';
+      const existing = useAppStore.getState().todoLists.find(l => 
+        l.name.toLowerCase() === name.toLowerCase()
+      );
+      if (existing) return existing.id;
+      // Auto-create the list
+      addTodoList({ name, icon: '📋', color: '#3B82F6' });
+      const created = useAppStore.getState().todoLists.find(l => 
+        l.name.toLowerCase() === name.toLowerCase()
+      );
+      return created?.id || null;
+    };
 
     actions.forEach(action => {
       try {
         switch (action.type) {
-          case 'CREATE_TASK': {
-            const [listName, title, priority = 'medium'] = action.params;
-            if (!listName || !title) {
-              failCount++;
-              break;
-            }
-            const targetList = todoLists.find(l => 
-              l.name.toLowerCase() === listName.toLowerCase()
+          case 'CREATE_LIST': {
+            const [name, icon = '📋', color = '#3B82F6'] = action.params;
+            if (!name) { failCount++; break; }
+            const exists = useAppStore.getState().todoLists.find(l => 
+              l.name.toLowerCase() === name.toLowerCase()
             );
-            if (targetList) {
-              addTodoItem(targetList.id, {
-                title,
-                priority: priority as 'low' | 'medium' | 'high',
-                completed: false,
-                progress: 0,
-                listId: targetList.id,
-              });
+            if (!exists) {
+              addTodoList({ name, icon, color });
               successCount++;
+              results.push(`List "${name}"`);
             } else {
-              failCount++;
+              // Already exists, not a failure
+              results.push(`List "${name}" (exists)`);
             }
             break;
           }
+          case 'CREATE_TASK': {
+            const [listName, title, priority = 'medium', deadline] = action.params;
+            if (!title) { failCount++; break; }
+            const listId = getOrCreateList(listName);
+            if (!listId) { failCount++; break; }
+            addTodoItem(listId, {
+              title,
+              priority: (priority as 'low' | 'medium' | 'high') || 'medium',
+              completed: false,
+              progress: 0,
+              listId,
+              deadline: deadline ? new Date(deadline + 'T00:00:00') : undefined,
+            });
+            successCount++;
+            results.push(`Task "${title}"`);
+            break;
+          }
           case 'CREATE_GOAL': {
-            const [title, category, milestonesStr] = action.params;
-            if (!title) {
-              failCount++;
-              break;
-            }
+            const [title, category, milestonesStr, deadline] = action.params;
+            if (!title) { failCount++; break; }
             const milestones = milestonesStr?.split(',').map((m, i) => ({
               id: String(i + 1),
               title: m.trim(),
@@ -138,57 +163,77 @@ export function AssistantView() {
               category: (category as 'short' | 'medium' | 'custom') || 'short',
               progress: 0,
               milestones,
+              deadline: deadline ? new Date(deadline + 'T00:00:00') : undefined,
             });
             successCount++;
+            results.push(`Goal "${title}" (${milestones.length} milestones)`);
             break;
           }
           case 'CREATE_HABIT': {
             const [name, icon = '✨', frequency = 'daily'] = action.params;
-            if (!name) {
-              failCount++;
-              break;
-            }
+            if (!name) { failCount++; break; }
             addHabit({
               name,
               icon,
-              frequency: frequency as 'daily' | 'weekly' | 'custom',
+              frequency: (frequency as 'daily' | 'weekly' | 'custom') || 'daily',
             });
             successCount++;
+            results.push(`Habit "${name}"`);
+            break;
+          }
+          case 'CREATE_PORTFOLIO': {
+            const [name, type = 'personal', icon = '💰', balanceStr = '0'] = action.params;
+            if (!name) { failCount++; break; }
+            addPortfolio({
+              name,
+              type: (type as 'personal' | 'investment' | 'savings' | 'custom') || 'personal',
+              icon,
+              balance: parseFloat(balanceStr) || 0,
+              currency: 'USD',
+            });
+            successCount++;
+            results.push(`Portfolio "${name}"`);
             break;
           }
           default:
             break;
         }
-      } catch {
+      } catch (e) {
+        console.error('Action execution failed:', action.type, e);
         failCount++;
       }
     });
 
     if (successCount > 0 && failCount === 0) {
-      toast.success(`${successCount} item${successCount > 1 ? 's' : ''} created successfully`);
+      toast.success(`Created: ${results.join(', ')}`);
     } else if (successCount > 0 && failCount > 0) {
-      toast.warning(`${successCount} created, ${failCount} failed`);
+      toast.warning(`Created ${successCount}, failed ${failCount}: ${results.join(', ')}`);
     } else if (failCount > 0) {
-      toast.error(`Failed to create items. Please try again.`);
+      toast.error(`Failed to create ${failCount} item(s). Please try again.`);
     }
-  }, [todoLists, addTodoItem, addGoal, addHabit]);
+  }, [todoLists, addTodoItem, addTodoList, addGoal, addHabit, addPortfolio]);
 
   // Handle AI actions - show confirmation first
   const handleAIActions = useCallback((actions: { type: string; params: string[] }[]) => {
     if (actions.length === 0) return;
 
-    // Convert to pending actions with descriptions
     const pending: PendingAction[] = actions.map(a => {
       let description = '';
       switch (a.type) {
+        case 'CREATE_LIST':
+          description = `${a.params[1] || '📋'} "${a.params[0]}"`;
+          break;
         case 'CREATE_TASK':
-          description = `"${a.params[1]}" in ${a.params[0]} (${a.params[2] || 'medium'} priority)`;
+          description = `"${a.params[1]}" in ${a.params[0] || 'General'} (${a.params[2] || 'medium'})${a.params[3] ? ` due ${a.params[3]}` : ''}`;
           break;
         case 'CREATE_GOAL':
-          description = `"${a.params[0]}" (${a.params[1] || 'short'} term)`;
+          description = `"${a.params[0]}" (${a.params[1] || 'short'} term)${a.params[3] ? ` due ${a.params[3]}` : ''}`;
           break;
         case 'CREATE_HABIT':
           description = `"${a.params[0]}" ${a.params[1] || '✨'} (${a.params[2] || 'daily'})`;
+          break;
+        case 'CREATE_PORTFOLIO':
+          description = `"${a.params[0]}" (${a.params[1] || 'personal'}) ${a.params[3] ? `$${a.params[3]}` : ''}`;
           break;
         default:
           description = a.params.join(' | ');
