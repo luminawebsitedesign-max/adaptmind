@@ -453,7 +453,7 @@ export function AssistantView() {
                 onChange={(e) => setInput(e.target.value)} 
                 placeholder={isRecording ? "Listening..." : "Ask me to organize tasks, create goals, or plan your week..."} 
                 className={cn(
-                  "flex-1 bg-background rounded-lg border border-border px-4 py-3 text-sm resize-none min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
+                  "flex-1 bg-background rounded-lg border border-border px-4 py-3 text-sm resize-none min-h-[44px] max-h-32 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary overflow-wrap-anywhere break-words",
                   isRecording && "border-destructive"
                 )}
                 rows={1}
