@@ -44,10 +44,10 @@ export function ProgressRing({
   return (
     <div 
       className={cn(
-        "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto",
+        "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto overflow-visible p-1",
         className
       )}
-      style={{ maxWidth: size, maxHeight: size }}
+      style={{ maxWidth: size + 16, maxHeight: size + 16 }}
     >
       <svg 
         viewBox={`0 0 ${size} ${size}`} 
