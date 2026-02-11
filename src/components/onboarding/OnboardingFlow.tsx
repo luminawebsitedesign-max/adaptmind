@@ -16,23 +16,21 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   useEffect(() => {
     if (!profile) return;
     
-    // Welcome form: show only if never completed (one-time only)
+    // Already completed onboarding — skip everything
+    if (profile.onboarding_completed) {
+      setCurrentStep('complete');
+      onComplete();
+      return;
+    }
+    
+    // Welcome form not yet completed
     if (!profile.welcome_form_completed) {
       setCurrentStep('form');
       return;
     }
     
-    // Tutorial: show on EVERY sign-in UNLESS:
-    // 1. User disabled auto-tutorial in settings, OR
-    // 2. Tutorial was already shown this session (welcome_tutorial_completed is session-only state)
-    if (!profile.disable_auto_tutorial && !profile.welcome_tutorial_completed) {
-      setCurrentStep('tutorial');
-      return;
-    }
-    
-    // Tutorial disabled by user preference
-    setCurrentStep('complete');
-    onComplete();
+    // Form done, show tutorial
+    setCurrentStep('tutorial');
   }, [profile, onComplete]);
 
   const handleFormComplete = async (data: WelcomeFormData) => {

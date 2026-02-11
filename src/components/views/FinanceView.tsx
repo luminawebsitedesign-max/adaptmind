@@ -213,12 +213,12 @@ export function FinanceView() {
   };
 
   const handleAddTransaction = () => {
-    if (newTransaction.description.trim() && newTransaction.amount > 0 && newTransaction.portfolioId) {
+    if (newTransaction.amount > 0 && newTransaction.portfolioId) {
       addTransaction({
         portfolioId: newTransaction.portfolioId,
         type: newTransaction.type,
         amount: newTransaction.amount,
-        description: newTransaction.description,
+        description: newTransaction.description.trim() || `${newTransaction.type.charAt(0).toUpperCase() + newTransaction.type.slice(1)}`,
         category: newTransaction.category,
         date: new Date(),
       });
@@ -437,14 +437,14 @@ export function FinanceView() {
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
                 />
                 <Input
-                  placeholder="Description (e.g., Salary, Groceries)"
+                  placeholder="Description (optional)"
                   value={newTransaction.description}
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
                 />
                 <Button 
                   onClick={handleAddTransaction} 
                   className="w-full"
-                  disabled={!newTransaction.description.trim() || newTransaction.amount <= 0 || !newTransaction.portfolioId}
+                  disabled={newTransaction.amount <= 0 || !newTransaction.portfolioId}
                 >
                   Record Transaction
                 </Button>
@@ -541,7 +541,13 @@ export function FinanceView() {
               <span>{goalsAchieved} goals achieved</span>
             </div>
           </div>
-          <Button variant="outline" onClick={() => setCurrentView("assistant")} className="gap-2 shrink-0">
+          <Button variant="outline" onClick={() => {
+            // Build a prefilled analysis prompt with portfolio context
+            const summaries = portfolios.map(p => `${p.name} (${p.type}): ${formatCurrency(p.balance)}`).join(', ');
+            const prompt = `Analyze my finances. Portfolios: ${summaries || 'none yet'}. Monthly income: ${formatCurrency(monthlyIncome)}, expenses: ${formatCurrency(monthlyExpenses)}. Summarize spending, income, and give suggestions.`;
+            useAppStore.getState().addChatMessage({ role: 'user', content: prompt });
+            setCurrentView("assistant");
+          }} className="gap-2 shrink-0">
             <Sparkles className="w-4 h-4" />
             Ask AI to Analyze
           </Button>

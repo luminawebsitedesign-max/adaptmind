@@ -24,12 +24,8 @@ const Index = () => {
   
   useEffect(() => {
     if (profile) {
-      // Welcome form: show only if never completed
-      // Tutorial: show on every sign-in unless disabled
-      const needsWelcomeForm = !profile.welcome_form_completed;
-      const needsTutorial = !profile.disable_auto_tutorial && !profile.welcome_tutorial_completed;
-      
-      setShowOnboarding(needsWelcomeForm || needsTutorial);
+      // Show onboarding only when onboarding_completed is false (first-time users)
+      setShowOnboarding(!profile.onboarding_completed);
     }
   }, [profile]);
 
