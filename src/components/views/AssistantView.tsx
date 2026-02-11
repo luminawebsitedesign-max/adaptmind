@@ -163,6 +163,7 @@ export function AssistantView() {
               category: (category as 'short' | 'medium' | 'custom') || 'short',
               progress: 0,
               milestones,
+              startDate: new Date(),
               deadline: deadline ? new Date(deadline + 'T00:00:00') : undefined,
             });
             successCount++;
@@ -251,6 +252,22 @@ export function AssistantView() {
 
   const handleConfirmActions = useCallback(() => {
     executeActions(pendingActionsRaw);
+
+    // Add a verification message to the chat showing what was actually created
+    const counts: Record<string, number> = {};
+    pendingActionsRaw.forEach(a => {
+      const label = a.type.replace('CREATE_', '').toLowerCase();
+      counts[label] = (counts[label] || 0) + 1;
+    });
+    const summary = Object.entries(counts).map(([k, v]) => `${v} ${k}${v > 1 ? 's' : ''}`).join(', ');
+    
+    setMessages(prev => [...prev, {
+      id: Math.random().toString(36).substring(2, 15),
+      role: 'assistant',
+      content: `Done! Created: ${summary}. Check your tabs to see everything.`,
+      timestamp: new Date(),
+    }]);
+
     setPendingActions([]);
     setPendingActionsRaw([]);
   }, [executeActions, pendingActionsRaw]);
