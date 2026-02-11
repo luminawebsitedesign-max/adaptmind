@@ -41,27 +41,29 @@ export function ProgressRing({
   // Generate a unique filter ID for this instance
   const filterId = `glow-${color}-${Math.random().toString(36).substr(2, 9)}`;
 
+  const pad = strokeWidth + 8;
+
   return (
     <div 
       className={cn(
-        "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto overflow-visible p-1",
+        "relative inline-flex items-center justify-center w-full max-w-[120px] aspect-square mx-auto",
         className
       )}
-      style={{ maxWidth: size + 16, maxHeight: size + 16 }}
+      style={{ maxWidth: size + pad * 2, maxHeight: size + pad * 2, overflow: 'visible' }}
     >
       <svg 
-        viewBox={`0 0 ${size} ${size}`} 
+        viewBox={`${-pad} ${-pad} ${size + pad * 2} ${size + pad * 2}`} 
         className="w-full h-full transform -rotate-90"
+        style={{ overflow: 'visible' }}
         aria-label={`Progress: ${Math.round(progress)}%`}
         role="progressbar"
         aria-valuenow={Math.round(progress)}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        {/* Define glow filter using SVG defs for reliable circular rendering */}
         <defs>
-          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+          <filter id={filterId} filterUnits="userSpaceOnUse" x={-pad} y={-pad} width={size + pad * 2} height={size + pad * 2}>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
