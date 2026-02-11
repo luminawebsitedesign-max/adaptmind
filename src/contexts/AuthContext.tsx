@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { switchStorageToUser } from '@/stores/appStore';
 
 interface Profile {
   id: string;
@@ -53,13 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching profile:', error);
         return null;
       }
-      return data as Profile;
+      return data as Profile | null;
     } catch (error) {
       console.error('Error fetching profile:', error);
       return null;
@@ -69,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
@@ -79,12 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Switch localStorage to this user's namespace
+          switchStorageToUser(session.user.id);
+
           setTimeout(() => {
             if (mounted) {
               fetchProfile(session.user.id).then(fetchedProfile => {
                 if (mounted && fetchedProfile) {
-                  // Simply use the DB value of onboarding_completed
-                  // Tutorial only shows when onboarding_completed = false
                   setProfile(fetchedProfile);
                   hasHandledInitialSession.current = true;
                 }
@@ -92,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }, 0);
         } else {
+          // Sign-out: clear user-scoped store
+          switchStorageToUser(null);
           setProfile(null);
           hasHandledInitialSession.current = false;
         }
@@ -100,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Then check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
@@ -108,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        switchStorageToUser(session.user.id);
+
         fetchProfile(session.user.id).then(fetchedProfile => {
           if (mounted && fetchedProfile) {
             setProfile(fetchedProfile);
@@ -156,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
+    // Storage is cleared via onAuthStateChange handler (switchStorageToUser(null))
   };
 
   const completeOnboarding = async () => {
@@ -177,8 +183,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    console.log('Completing welcome form for user:', user.id);
-    
     const updateData = { 
       welcome_form_completed: true,
       preferred_language: data.language?.slice(0, 10) || 'en',
@@ -195,19 +199,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (error) {
       console.error('Error completing welcome form:', error);
-      // Still update local state to prevent re-showing the form
-      // The database will be synced on next login
       if (profile) {
         setProfile({ ...profile, ...updateData });
       }
       return;
     }
     
-    console.log('Welcome form completed successfully');
     setProfile(updatedProfile as Profile);
   };
 
-  // Complete onboarding: persists to DB so tutorial never shows again on normal sign-in
   const dismissTutorial = async () => {
     if (!user) return;
     

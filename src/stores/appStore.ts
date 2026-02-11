@@ -56,9 +56,30 @@ interface AppState {
   addFinanceGoal: (goal: Omit<FinanceGoal, 'id' | 'createdAt'>) => void;
   updateFinanceGoal: (id: string, updates: Partial<FinanceGoal>) => void;
   deleteFinanceGoal: (id: string) => void;
+
+  // Reset all user data (used on sign-out)
+  resetUserData: () => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
+
+// Storage key prefix – will be combined with userId to namespace data per user
+const STORAGE_KEY_PREFIX = 'adaptmind-storage';
+
+/** Build the per-user localStorage key. Falls back to a shared key when no userId is known. */
+export function getStorageKey(userId?: string | null): string {
+  return userId ? `${STORAGE_KEY_PREFIX}-${userId}` : STORAGE_KEY_PREFIX;
+}
+
+const emptyUserData = {
+  todoLists: [] as TodoList[],
+  goals: [] as Goal[],
+  habits: [] as Habit[],
+  chatMessages: [] as ChatMessage[],
+  portfolios: [] as Portfolio[],
+  transactions: [] as Transaction[],
+  financeGoals: [] as FinanceGoal[],
+};
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -66,8 +87,8 @@ export const useAppStore = create<AppState>()(
       currentView: 'dashboard',
       setCurrentView: (view) => set({ currentView: view }),
       
-      // Todo Lists - Start with empty state for new users
-      todoLists: [],
+      // Todo Lists
+      ...emptyUserData,
       
       addTodoList: (list) => set((state) => ({
         todoLists: [...state.todoLists, { ...list, id: generateId(), items: [] }]
@@ -99,7 +120,6 @@ export const useAppStore = create<AppState>()(
                 items: list.items.map(item => {
                   if (item.id !== itemId) return item;
                   const newItem = { ...item, ...updates };
-                  // Track completion time
                   if (updates.completed && !item.completed) {
                     newItem.completedAt = new Date();
                   } else if (updates.completed === false) {
@@ -144,9 +164,7 @@ export const useAppStore = create<AppState>()(
         };
       }),
       
-      // Goals - Start with empty state for new users
-      goals: [],
-      
+      // Goals
       addGoal: (goal) => set((state) => ({
         goals: [...state.goals, { ...goal, id: generateId(), createdAt: new Date() }]
       })),
@@ -176,9 +194,7 @@ export const useAppStore = create<AppState>()(
         })
       })),
       
-      // Habits - Start with empty state for new users
-      habits: [],
-      
+      // Habits
       addHabit: (habit) => set((state) => ({
         habits: [...state.habits, { ...habit, id: generateId(), streak: 0, bestStreak: 0, completedDates: [], createdAt: new Date() }]
       })),
@@ -199,7 +215,6 @@ export const useAppStore = create<AppState>()(
             ? habit.completedDates.filter(d => d !== date)
             : [...habit.completedDates, date].sort();
           
-          // Calculate streak
           let streak = 0;
           const today = new Date().toISOString().split('T')[0];
           let checkDate = new Date(today);
@@ -217,9 +232,7 @@ export const useAppStore = create<AppState>()(
         })
       })),
       
-      // Chat - Start with empty state for new users
-      chatMessages: [],
-      
+      // Chat
       addChatMessage: (message) => set((state) => ({
         chatMessages: [...state.chatMessages, { ...message, id: generateId(), timestamp: new Date() }]
       })),
@@ -235,10 +248,6 @@ export const useAppStore = create<AppState>()(
       setShowManualTutorial: (show) => set({ showManualTutorial: show }),
 
       // Finance
-      portfolios: [],
-      transactions: [],
-      financeGoals: [],
-
       addPortfolio: (portfolio) => set((state) => {
         const newPortfolio = { ...portfolio, id: generateId(), createdAt: new Date() };
         return { portfolios: [...state.portfolios, newPortfolio] };
@@ -256,7 +265,6 @@ export const useAppStore = create<AppState>()(
 
       addTransaction: (transaction) => set((state) => {
         const newTransaction = { ...transaction, id: generateId(), createdAt: new Date() };
-        // Update portfolio balance
         const portfolios = state.portfolios.map(p => {
           if (p.id !== transaction.portfolioId) return p;
           let newBalance = p.balance;
@@ -273,7 +281,6 @@ export const useAppStore = create<AppState>()(
       deleteTransaction: (id) => set((state) => {
         const tx = state.transactions.find(t => t.id === id);
         if (!tx) return state;
-        // Reverse the transaction on portfolio balance
         const portfolios = state.portfolios.map(p => {
           if (p.id !== tx.portfolioId) return p;
           let newBalance = p.balance;
@@ -298,9 +305,37 @@ export const useAppStore = create<AppState>()(
       deleteFinanceGoal: (id) => set((state) => ({
         financeGoals: state.financeGoals.filter(g => g.id !== id)
       })),
+
+      // Reset all user data on sign-out
+      resetUserData: () => set({
+        ...emptyUserData,
+        currentView: 'dashboard',
+      }),
     }),
     {
-      name: 'adaptmind-storage',
+      name: STORAGE_KEY_PREFIX,
     }
   )
 );
+
+/**
+ * Switch the Zustand persist storage key to match the signed-in user.
+ * Call this on sign-in (with userId) and sign-out (without userId).
+ * On sign-out it also wipes in-memory state so the next user starts clean.
+ */
+export function switchStorageToUser(userId?: string | null) {
+  const store = useAppStore;
+  const newKey = getStorageKey(userId);
+
+  // Update the persist API to use the new key
+  store.persist.setOptions({ name: newKey });
+
+  if (!userId) {
+    // Sign-out: clear in-memory state
+    store.getState().resetUserData();
+    return;
+  }
+
+  // Sign-in: rehydrate from the user-specific key (if any data exists)
+  store.persist.rehydrate();
+}
