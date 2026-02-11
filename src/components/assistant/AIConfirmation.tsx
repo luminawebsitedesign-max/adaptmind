@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Check, X, AlertCircle } from 'lucide-react';
 
 export interface PendingAction {
-  type: 'CREATE_TASK' | 'CREATE_GOAL' | 'CREATE_HABIT' | 'DELETE_TASK' | 'DELETE_GOAL' | 'DELETE_HABIT';
+  type: 'CREATE_TASK' | 'CREATE_GOAL' | 'CREATE_HABIT' | 'CREATE_LIST' | 'CREATE_PORTFOLIO' | 'DELETE_TASK' | 'DELETE_GOAL' | 'DELETE_HABIT';
   description: string;
   params: string[];
 }
@@ -24,9 +24,11 @@ export function AIConfirmation({ actions, onConfirm, onCancel }: AIConfirmationP
 
   const getActionLabel = (type: string) => {
     switch (type) {
+      case 'CREATE_LIST': return 'Create List';
       case 'CREATE_TASK': return 'Create Task';
       case 'CREATE_GOAL': return 'Create Goal';
       case 'CREATE_HABIT': return 'Create Habit';
+      case 'CREATE_PORTFOLIO': return 'Create Portfolio';
       case 'DELETE_TASK': return 'Delete Task';
       case 'DELETE_GOAL': return 'Delete Goal';
       case 'DELETE_HABIT': return 'Delete Habit';
