@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { DemoBanner } from "@/components/DemoBanner";
+import { DEMO_MODE } from "@/lib/demo";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +26,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!user && !DEMO_MODE) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -46,7 +48,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth" element={DEMO_MODE ? <Navigate to="/" replace /> : <Auth />} />
       <Route
         path="/"
         element={
@@ -68,6 +70,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <DemoBanner />
             <AppRoutes />
           </AuthProvider>
         </BrowserRouter>

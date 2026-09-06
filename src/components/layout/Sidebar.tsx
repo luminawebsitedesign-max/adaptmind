@@ -2,6 +2,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { DEMO_MODE } from "@/lib/demo";
 import adaptmindIconLight from "@/assets/adaptmind-icon-light.png";
 import adaptmindTextLight from "@/assets/adaptmind-text-light.png";
 import {
@@ -196,14 +197,18 @@ export function Sidebar() {
               <Download className="w-4 h-4" />
               <span>Export Data</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-border/50" />
-            <DropdownMenuItem 
-              onClick={signOut}
-              className="cursor-pointer gap-2 text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </DropdownMenuItem>
+            {!DEMO_MODE && (
+              <>
+                <DropdownMenuSeparator className="bg-border/50" />
+                <DropdownMenuItem 
+                  onClick={signOut}
+                  className="cursor-pointer gap-2 text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

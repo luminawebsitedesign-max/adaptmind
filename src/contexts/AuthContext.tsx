@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useRef } fro
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { switchStorageToUser } from '@/stores/appStore';
+import { DEMO_MODE, demoUser, demoProfile, seedDemoData } from '@/lib/demo';
 
 interface Profile {
   id: string;
@@ -41,10 +42,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(DEMO_MODE ? demoUser : null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(DEMO_MODE ? (demoProfile as Profile) : null);
+  const [loading, setLoading] = useState(!DEMO_MODE);
   
   const hasHandledInitialSession = useRef(false);
 
@@ -68,6 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Demo mode: no Supabase auth, no listeners, no network. Local data only.
+    if (DEMO_MODE) {
+      seedDemoData();
+      return;
+    }
+
     let mounted = true;
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -131,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
+    if (DEMO_MODE) return { error: null };
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -148,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    if (DEMO_MODE) return { error: null };
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -157,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (DEMO_MODE) return;
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
@@ -165,6 +175,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const completeOnboarding = async () => {
+    if (DEMO_MODE) {
+      setProfile((p) => (p ? { ...p, onboarding_completed: true } : p));
+      return;
+    }
     if (!user) return;
     
     const { error } = await supabase
@@ -178,6 +192,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const completeWelcomeForm = async (data: WelcomeFormData) => {
+    if (DEMO_MODE) {
+      setProfile((p) => (p ? {
+        ...p,
+        welcome_form_completed: true,
+        preferred_language: data.language || 'en',
+        primary_use: data.primaryUse || null,
+        user_notes: data.userNotes || null,
+      } : p));
+      return;
+    }
     if (!user) {
       console.error('Cannot complete welcome form: No user logged in');
       return;
@@ -209,6 +233,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const dismissTutorial = async () => {
+    if (DEMO_MODE) {
+      setProfile((p) => (p ? { ...p, onboarding_completed: true } : p));
+      return;
+    }
     if (!user) return;
     
     const { error } = await supabase

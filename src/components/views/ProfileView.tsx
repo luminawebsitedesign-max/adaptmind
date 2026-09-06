@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_MODE } from "@/lib/demo";
 import { useTheme } from "next-themes";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,14 @@ export function ProfileView() {
     
     setIsSaving(true);
     try {
+      if (DEMO_MODE) {
+        localStorage.setItem("adaptmind-ai-personality", aiPersonality);
+        localStorage.setItem("adaptmind-demo-display-name", displayName);
+        setHasUnsavedChanges(false);
+        toast.success("Profile saved", { description: "Stored in your browser (demo mode)." });
+        setIsSaving(false);
+        return;
+      }
       const { error } = await supabase
         .from("profiles")
         .update({ 

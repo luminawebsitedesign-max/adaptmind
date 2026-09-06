@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import { useChatHistory } from "@/hooks/useChatHistory";
+import { DEMO_MODE, DEMO_REPO_URL } from "@/lib/demo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -419,6 +420,15 @@ export function AssistantView() {
             Clear Chat
           </Button>
         </div>
+
+        {DEMO_MODE && (
+          <div className="mx-4 mb-3 rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-2 text-xs text-muted-foreground">
+            Sample output — demo mode. Clone the repo and add your own API key to generate a real plan.{" "}
+            <a href={DEMO_REPO_URL} target="_blank" rel="noreferrer noopener" className="underline underline-offset-2 text-primary">
+              {DEMO_REPO_URL}
+            </a>
+          </div>
+        )}
 
         <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden mx-4 mb-4 min-h-0">
           <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollRef}>

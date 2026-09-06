@@ -1,6 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { DEMO_MODE } from '@/lib/demo';
+
+// ---- Demo mode: localStorage-backed chat history (no backend calls) ----
+const DEMO_CONVS_KEY = 'adaptmind-demo-conversations';
+const DEMO_MSGS_KEY = 'adaptmind-demo-chat-messages';
+
+function readLocal<T>(key: string): T[] {
+  try {
+    return JSON.parse(localStorage.getItem(key) || '[]') as T[];
+  } catch {
+    return [];
+  }
+}
+function writeLocal<T>(key: string, value: T[]) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+const localId = () => Math.random().toString(36).slice(2, 12);
 
 export interface ChatConversation {
   id: string;
@@ -52,6 +69,11 @@ export function useChatHistory() {
 
   // Fetch all conversations for the user
   const fetchConversations = useCallback(async () => {
+    if (DEMO_MODE) {
+      const convs = readLocal<ChatConversation>(DEMO_CONVS_KEY);
+      setConversations(convs.sort((a, b) => b.updated_at.localeCompare(a.updated_at)));
+      return;
+    }
     if (!user) return;
     
     const { data, error } = await supabase
@@ -70,6 +92,11 @@ export function useChatHistory() {
 
   // Fetch messages for a conversation
   const fetchMessages = useCallback(async (conversationId: string) => {
+    if (DEMO_MODE) {
+      const all = readLocal<ChatMessage>(DEMO_MSGS_KEY);
+      setMessages(all.filter((m) => m.conversation_id === conversationId));
+      return;
+    }
     if (!user) return;
     
     setIsLoading(true);
@@ -91,6 +118,15 @@ export function useChatHistory() {
 
   // Create a new conversation
   const createConversation = useCallback(async (title?: string): Promise<string | null> => {
+    if (DEMO_MODE) {
+      const now = new Date().toISOString();
+      const conv: ChatConversation = { id: localId(), title: title || 'New Chat', created_at: now, updated_at: now };
+      writeLocal(DEMO_CONVS_KEY, [conv, ...readLocal<ChatConversation>(DEMO_CONVS_KEY)]);
+      setConversations((prev) => [conv, ...prev]);
+      setCurrentConversation(conv);
+      setMessages([]);
+      return conv.id;
+    }
     if (!user) return null;
     
     const { data, error } = await supabase
@@ -121,6 +157,27 @@ export function useChatHistory() {
     role: 'user' | 'assistant',
     content: string
   ): Promise<string | null> => {
+    if (DEMO_MODE) {
+      const msg: ChatMessage = {
+        id: localId(),
+        conversation_id: conversationId,
+        role,
+        content,
+        created_at: new Date().toISOString(),
+      };
+      writeLocal(DEMO_MSGS_KEY, [...readLocal<ChatMessage>(DEMO_MSGS_KEY), msg]);
+      setMessages((prev) => [...prev, msg]);
+
+      const convs = readLocal<ChatConversation>(DEMO_CONVS_KEY).map((c) => {
+        if (c.id !== conversationId) return c;
+        const title = role === 'user' && c.title === 'New Chat' ? generateShortTitle(content) : c.title;
+        return { ...c, title, updated_at: new Date().toISOString() };
+      });
+      writeLocal(DEMO_CONVS_KEY, convs);
+      setConversations(convs.sort((a, b) => b.updated_at.localeCompare(a.updated_at)));
+      setCurrentConversation((prev) => (prev ? convs.find((c) => c.id === prev.id) || prev : prev));
+      return msg.id;
+    }
     if (!user) return null;
     
     const { data, error } = await supabase
@@ -185,6 +242,13 @@ export function useChatHistory() {
 
   // Delete a conversation
   const deleteConversation = useCallback(async (conversationId: string) => {
+    if (DEMO_MODE) {
+      writeLocal(DEMO_CONVS_KEY, readLocal<ChatConversation>(DEMO_CONVS_KEY).filter((c) => c.id !== conversationId));
+      writeLocal(DEMO_MSGS_KEY, readLocal<ChatMessage>(DEMO_MSGS_KEY).filter((m) => m.conversation_id !== conversationId));
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+      setCurrentConversation((prev) => (prev?.id === conversationId ? null : prev));
+      return;
+    }
     if (!user) return;
     
     const { error } = await supabase
