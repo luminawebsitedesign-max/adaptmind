@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useAppStore } from '@/stores/appStore';
 import { supabase } from '@/integrations/supabase/client';
+import { DEMO_MODE } from '@/lib/demo';
+import { getDemoWeeklyPlan } from '@/data/demoWeeklyPlan';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -116,6 +118,22 @@ export function useAIChat() {
   ) => {
     setIsLoading(true);
     setError(null);
+
+    // Demo mode: no edge function, no AI API. Bundled sample plan, streamed locally.
+    if (DEMO_MODE) {
+      const full = getDemoWeeklyPlan();
+      const visible = full.replace(/\[ACTION:[^\]]+\]/g, '').trim();
+      const words = visible.split(' ');
+      for (let i = 0; i < words.length; i += 4) {
+        onDelta(words.slice(i, i + 4).join(' ') + ' ');
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      const { actions } = parseAIActions(full);
+      if (actions.length > 0 && onActions) onActions(actions);
+      setIsLoading(false);
+      onDone();
+      return;
+    }
 
     try {
       // Force refresh the session to ensure we have a valid token
